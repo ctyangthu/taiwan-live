@@ -1,0 +1,174 @@
+{
+ "checked": "2026-11-11",
+ "verdict": "<b>2026/11/11 再以四座機場公布的資料複查三家航班：定期航班沒有遺漏。</b>這次只補入華航高雄—新加坡的兩班加班機，並同步長榮高雄—香港的停飛日與大阪 BR132 的時刻。官方時刻表是 11/4 查核的（長榮補入立榮自營 3 條航線與全部共掛，星宇修正 1 個班號），華航電子班表仍是 Issue 1。官方時刻表的查核是抽查，未查的週次仍可能有遺漏。",
+ "added": [
+  {
+   "no": "CI7928",
+   "route": "新加坡 → 高雄",
+   "when": "11/13 抵達（加班機）",
+   "src": "高雄機場四週班表，11/11 複查補入"
+  },
+  {
+   "no": "CI7927",
+   "route": "高雄 → 新加坡",
+   "when": "11/30 出發（加班機）",
+   "src": "高雄機場四週班表，11/11 複查補入"
+  },
+  {
+   "no": "B7187／188",
+   "route": "桃園 → 深圳",
+   "when": "週一、二、四、五、日（立榮）",
+   "src": "長榮官網。這條航線原本不在系統上"
+  },
+  {
+   "no": "B7501／502",
+   "route": "松山 → 上海浦東",
+   "when": "週二、四、日（立榮）",
+   "src": "長榮官網、松山機場週表"
+  },
+  {
+   "no": "B7511／512",
+   "route": "松山 → 廈門",
+   "when": "週一、三、五（立榮）",
+   "src": "長榮官網、松山機場週表"
+  },
+  {
+   "no": "BR3497–3500",
+   "route": "清泉崗 → 澳門",
+   "when": "每日，澳門航空執飛",
+   "src": "長榮官網、清泉崗機場。長榮在清泉崗唯一的國際航班"
+  },
+  {
+   "no": "BR2xxx、BR3xxx、B77xxx",
+   "route": "四座機場共 16 個航點",
+   "when": "他航共掛，預設隱藏",
+   "src": "長榮官網、四座機場"
+  },
+  {
+   "no": "JX3201",
+   "route": "桃園 → 澳門",
+   "when": "3/27（取代當日 JX201）",
+   "src": "星宇官網，時刻相同"
+  }
+ ],
+ "coverage": [
+  {
+   "name": "長榮航空官網時刻表",
+   "url": "https://booking.evaair.com/flyeva/eva/b2c/flight-schedules.aspx?lang=zh-tw",
+   "what": "273 頁，含 733 個共掛航班日。全部航線去回程 12/28–1/3；春節週 2/1–2/7、美國夏令時間後 3/15–3/21 查主要航線。這次新增的查核基準",
+   "compared": 3121,
+   "missing": 0,
+   "extra": 0
+  },
+  {
+   "name": "星宇航空官網時刻表（第二輪）",
+   "url": "https://www.starlux-airlines.com/zh-TW/timetable",
+   "what": "348 頁。去程 11/23–29、12/28–1/3、2/1–7、2/22–28、3/22–28，回程 12/28–1/3、2/22–28。差異是 3/27 的班號，已修正",
+   "compared": 2447,
+   "missing": 1,
+   "extra": 1
+  },
+  {
+   "name": "中華航空電子班表",
+   "url": "https://www.china-airlines.com/tw/zh/fly/flight-status/timetable",
+   "what": "重新下載 Issue 1（2026/10/20，仍是最新版）解析，與系統資料逐筆相同。比對單位是班表列數",
+   "compared": 374,
+   "missing": 0,
+   "extra": 0
+  },
+  {
+   "name": "四座機場：長榮",
+   "url": "https://www.taoyuan-airport.com/",
+   "what": "11/11 複查。未收錄的 3 筆：布里斯本 BR326 延誤到 11/11 才抵達，以及 12/4 的高雄—澳門共掛 BR2917／2918；多列的都是共掛的代表班期",
+   "compared": 1303,
+   "missing": 3,
+   "extra": 23
+  },
+  {
+   "name": "四座機場：華航",
+   "url": "https://www.taoyuan-airport.com/",
+   "what": "11/11 複查。補入兩班高雄—新加坡加班機後完全相符；另有 8 筆個別日期的時刻差（倫敦 CI81、廣島 CI112 等）",
+   "compared": 1458,
+   "missing": 0,
+   "extra": 0
+  },
+  {
+   "name": "四座機場：星宇",
+   "url": "https://www.taoyuan-airport.com/",
+   "what": "11/11 複查。未收錄的 1 筆是 JX3861：函館 JX861 在 11/11 取消後隔天的替補航班",
+   "compared": 270,
+   "missing": 1,
+   "extra": 0
+  }
+ ],
+ "notes": [
+  "<b>四座機場的三家航班：</b>桃園三家都有。松山只有長榮與華航，星宇沒有松山國際線。高雄長榮與華航有航班，星宇 2027/1/1 開航神戶、沖繩。清泉崗華航有沖繩、華信有胡志明市、星宇有 10 個航點，長榮只有澳門共掛。"
+ ],
+ "absent": [
+  "<b>長榮</b>：清泉崗除澳門共掛外查無航班；旭川、函館包機不在官網時刻表、日期不明，不列。",
+  "<b>華航</b>：清泉崗—北九州、高雄—高松本季沒有；桃園—重慶延到 2027/3/31 之後。",
+  "<b>星宇</b>：清泉崗—峴港、富國島官網仍列，但全部抽查週都查無航班；松山沒有國際線。"
+ ],
+ "limits": [
+  "官方時刻表是抽查，不是逐週全掃。星宇去程查過十週、回程兩週；長榮全部航線一週，其餘週次查主要航線。華航以整季電子班表為基準，線上查詢工具有 Cloudflare 驗證，不做自動查詢。",
+  "共掛航班由他航排班，班期與時刻只是代表值。",
+  "TDX 未帶金鑰的額度已用完，長榮沒有 TDX 資料；華航與星宇的 TDX 是 2026/11/4 上午的快照。",
+  "機場看板涵蓋 11/3–11/5 與 11/10–11/12，高雄四週班表涵蓋到 12/6；12 月中以後只靠官方時刻表的抽查。"
+ ],
+ "sites": [
+  {
+   "name": "長榮航空航班動態系統",
+   "url": "https://ctyangthu.github.io/eva-live/"
+  },
+  {
+   "name": "中華航空航班動態系統",
+   "url": "https://ctyangthu.github.io/ci-live/"
+  },
+  {
+   "name": "星宇航空航班動態系統",
+   "url": "https://ctyangthu.github.io/jx-live/"
+  }
+ ],
+ "sources": [
+  {
+   "name": "長榮航空航班時刻表",
+   "url": "https://booking.evaair.com/flyeva/eva/b2c/flight-schedules.aspx?lang=zh-tw",
+   "what": "BR 與 B7 國際線未來 360 天。"
+  },
+  {
+   "name": "中華航空電子班表",
+   "url": "https://www.china-airlines.com/tw/zh/fly/flight-status/timetable",
+   "what": "Issue 1，2026/10/25–2027/3/27。"
+  },
+  {
+   "name": "星宇航空班機時刻表",
+   "url": "https://www.starlux-airlines.com/zh-TW/timetable",
+   "what": "逐週查詢。"
+  },
+  {
+   "name": "TDX 運輸資料流通服務",
+   "url": "https://tdx.transportdata.tw/",
+   "what": "華航、星宇的國際定期航班。"
+  },
+  {
+   "name": "桃園機場",
+   "url": "https://www.taoyuan-airport.com/",
+   "what": "即時航班 11/3–11/5、11/10–11/12。"
+  },
+  {
+   "name": "松山機場",
+   "url": "https://www.tsa.gov.tw/flights/international/regular",
+   "what": "當日航班與週表。"
+  },
+  {
+   "name": "清泉崗機場",
+   "url": "https://www.tca.gov.tw/?act=fids&code=regular_flight",
+   "what": "當日航班與週表。"
+  },
+  {
+   "name": "高雄機場",
+   "url": "https://www.kia.gov.tw/FLIPLAN.html",
+   "what": "當日航班與 11/2–12/6 四週班表。"
+  }
+ ]
+}

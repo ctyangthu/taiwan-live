@@ -1,0 +1,1298 @@
+<title>台灣航空動態</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one-screen operations console. World route map on the left, a rail of status cards
+   on the right (summary → selected flight → tabs). Stacks on phones. */
+:root{
+  --bg:#E8ECEE; --surface:#FFFFFF; --surface-2:#F3F5F6; --ink:#151A1E; --muted:#5B666E; --rule:#D3DADE;
+  --sea:#C4D8E3; --land:#FBFBF7; --border:#C3CCD1; --grat:#A9BECA; --tw-land:#F0DCBE; --night:rgba(18,36,66,.085);
+  --accent:#1B5FA8; --accent-ink:#FFFFFF; --accent-soft:#DCE8F4;
+  --r-tw:#151A1E; --r-nea:#DB4F3B; --r-cn:#C98A08; --r-sea:#1F9A5F; --r-sa:#BE4A9C; --r-oc:#0F9AAD; --r-eu:#7556D4; --r-na:#3570D8; --r-me:#B0548F;
+  --plane-halo:#FFFFFF; --halo:#FAFAF6;
+  --board-bg:#0F1214; --board-ink:#F1F1EC; --board-amber:#FFB341; --board-green:#79D69A; --board-dim:#7D878D; --board-rule:#283035;
+  --live:#2E9E5B;
+  --k-BR:#1E8A4C; --k-B7:#5E9E2E; --k-CI:#C2366F; --k-AE:#7B4FC4; --k-JX:#A97B1F; --k-CS:#7B8790;
+  --font-display:"Barlow Condensed","Noto Sans TC",system-ui,sans-serif;
+  --font-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1114; --surface:#131A1F; --surface-2:#1B252B; --ink:#E5EAED; --muted:#94A1A9; --rule:#25313A;
+    --sea:#081014; --land:#1E282E; --border:#36444D; --grat:#1C2930; --tw-land:#4A3B22; --night:rgba(0,0,0,.34);
+    --accent:#62A4EE; --accent-ink:#0C1114; --accent-soft:#16283A;
+    --r-tw:#E5EAED; --r-nea:#FF7B66; --r-cn:#F0B73A; --r-sea:#4CC889; --r-sa:#E579C4; --r-oc:#3FCADB; --r-eu:#A58DF5; --r-na:#6EA2FF; --r-me:#E58BC6;
+    --plane-halo:#0C1114; --halo:#1B242A;
+    --k-BR:#4CC889; --k-B7:#A4D65E; --k-CI:#F08DB4; --k-AE:#BE9BF2; --k-JX:#E3BE6E; --k-CS:#9AA6AE;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1114; --surface:#131A1F; --surface-2:#1B252B; --ink:#E5EAED; --muted:#94A1A9; --rule:#25313A;
+  --sea:#081014; --land:#1E282E; --border:#36444D; --grat:#1C2930; --tw-land:#4A3B22; --night:rgba(0,0,0,.34);
+  --accent:#62A4EE; --accent-ink:#0C1114; --accent-soft:#16283A;
+  --r-tw:#E5EAED; --r-nea:#FF7B66; --r-cn:#F0B73A; --r-sea:#4CC889; --r-sa:#E579C4; --r-oc:#3FCADB; --r-eu:#A58DF5; --r-na:#6EA2FF; --r-me:#E58BC6;
+  --plane-halo:#0C1114; --halo:#1B242A;
+    --k-BR:#4CC889; --k-B7:#A4D65E; --k-CI:#F08DB4; --k-AE:#BE9BF2; --k-JX:#E3BE6E; --k-CS:#9AA6AE;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+
+.app{display:flex;flex-direction:column;height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+
+/* ── header ─────────────────────────────── */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--rule);
+  padding-block:10px 12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 28px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand svg{flex:none}
+.brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.04em;line-height:1.15;text-wrap:balance}
+.brand p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.clock{display:flex;align-items:center;gap:14px;margin-left:auto}
+.clock time{font:600 40px/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.clock .when{display:grid;gap:2px;font-size:12.5px;color:var(--muted)}
+.clock .when b{color:var(--ink);font-weight:500}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;border:1px solid var(--rule);width:max-content}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.pill.live i{background:var(--live);box-shadow:0 0 0 3px color-mix(in srgb,var(--live) 25%,transparent);animation:blink 1.6s infinite}
+.pill.sim i{background:var(--accent)}
+@keyframes blink{50%{opacity:.35}}
+
+.toolbar{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.field{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.field input[type=date],.field select{border:1px solid var(--rule);border-radius:8px;background:var(--surface);padding:5px 8px;color:var(--ink)}
+.play{display:flex;align-items:center;gap:8px;flex:1 1 360px;min-width:0}
+.btn{border:1px solid var(--rule);background:var(--surface);border-radius:8px;padding:5px 11px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.btn.icon{width:34px;justify-content:center;padding:5px 0}
+.play input[type=range]{flex:1;width:0;min-width:110px;accent-color:var(--accent)}
+.play output{font:600 15px var(--font-display);font-variant-numeric:tabular-nums;min-width:44px;color:var(--muted)}
+.find{display:flex;align-items:center;gap:6px;position:relative}
+.find input{border:1px solid var(--rule);border-radius:8px;background:var(--surface);padding:5px 9px;width:210px;min-width:0}
+.find .msg{position:absolute;top:100%;left:2px;margin-top:3px;font-size:11.5px;color:var(--r-nea);white-space:nowrap}
+
+/* ── main grid ──────────────────────────── */
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(370px,460px);gap:16px;
+  padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mapwrap{position:relative;min-height:0;border-radius:14px;overflow:hidden;background:var(--sea);border:1px solid var(--rule)}
+#map{display:block;width:100%;height:100%;touch-action:none;user-select:none;cursor:grab}
+#map.dragging{cursor:grabbing}
+.rail{min-height:0;min-width:0;overflow:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:4px}
+
+/* map svg */
+#land{fill:var(--land)}
+#taiwan{fill:var(--tw-land)}
+#borders{fill:none;stroke:var(--border);stroke-width:.7;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#grat{fill:none;stroke:var(--grat);stroke-width:.8;stroke-dasharray:3 5;vector-effect:non-scaling-stroke}
+#night{fill:var(--night);pointer-events:none}
+.sea-label{fill:var(--grat);font-size:14px;letter-spacing:.6em;font-weight:500}
+.sea-label.small{font-size:11px;letter-spacing:.2em}
+.rt{fill:none;stroke:var(--rc);stroke-width:1.2;opacity:.42;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.rt.cs{stroke-dasharray:4 4}
+.rt.hl{opacity:1;stroke-width:2.4}
+.rt.dim{opacity:.12}
+.rt.off{display:none}
+.sr-done{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.sr-rest{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:6 5;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.75}
+.sr-leg{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-dasharray:2 4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.ap{cursor:pointer}
+.ap .hit{fill:transparent}
+.ap .dot{fill:var(--surface);stroke:var(--rc);stroke-width:2}
+.ap.tw .dot{fill:var(--ink);stroke:var(--surface);stroke-width:1.5}
+.ap.hub .dot{stroke-width:2.2}
+.ap.sel .dot{fill:var(--rc);stroke:var(--ink)}
+.ap .lb{font-size:12px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:3.5px;stroke-linejoin:round}
+.ap.hub .lb{font-size:13.5px}
+.ap .cd{font:600 10.5px var(--font-display);letter-spacing:.06em;fill:var(--muted)}
+.ap:hover .lb{fill:var(--accent)}
+.ap.dim{opacity:.35}
+.ap.off{display:none}
+.pl{cursor:pointer}
+.pl .hit{fill:transparent}
+.pl .body{fill:var(--rc);stroke:var(--plane-halo);stroke-width:1.6;stroke-linejoin:round}
+.pl.gnd{opacity:.55}
+.pl.cs .body{fill:var(--surface);stroke:var(--rc);stroke-width:2}
+.pl .ring{fill:none;stroke:var(--ink);stroke-width:2;opacity:0}
+.pl.sel .ring{opacity:1;animation:pulse 1.8s ease-out infinite}
+.pl.sel .body{stroke:var(--ink)}
+@keyframes pulse{0%{opacity:.9;transform:scale(.7)}100%{opacity:0;transform:scale(1.8)}}
+.pll{font:700 12px var(--font-display);letter-spacing:.03em;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:3.5px;stroke-linejoin:round;pointer-events:none}
+
+/* map overlays */
+.ov{position:absolute;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--rule);border-radius:10px}
+.legend{left:12px;top:12px;padding:6px 6px 8px;display:grid;gap:1px;font-size:12.5px;min-width:132px}
+.legend .lg{border:0;background:transparent;border-radius:6px;display:flex;align-items:center;gap:8px;padding:2px 6px;text-align:left}
+.legend .lg:hover{background:var(--surface-2)}
+.legend .lg[aria-pressed="false"]{opacity:.4}
+.legend .lg[aria-pressed="false"] .sw{background:transparent!important;outline:1.5px solid var(--muted);outline-offset:-1.5px}
+.legend .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.legend .lg b{font:700 15px var(--font-display);margin-left:auto;font-variant-numeric:tabular-nums;min-width:18px;text-align:right}
+.legend small{color:var(--muted);font-size:11px;padding:4px 6px 0;line-height:1.45}
+.legend .lh{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:0 6px 2px}
+.mapctl{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100% - 80px)}
+.mapctl .ov{position:static}
+.views{display:flex;flex-wrap:wrap;padding:3px;gap:2px}
+.views button{border:0;background:transparent;border-radius:7px;padding:4px 9px;font-size:12.5px;font-weight:500}
+.views button:hover{background:var(--surface-2)}
+.views button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.zoom{right:12px;bottom:12px;display:grid;padding:3px;gap:2px}
+.zoom button{border:0;background:transparent;width:32px;height:32px;border-radius:7px;font-size:18px;line-height:1}
+.zoom button:hover{background:var(--surface-2)}
+
+/* ── cards ─────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:14px 16px}
+.card h2{margin:0;font-size:16px;font-weight:700;letter-spacing:.02em}
+.card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.card-head small{color:var(--muted);font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kpi{display:grid;gap:0}
+.kpi b{font:600 28px/1.05 var(--font-display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--muted)}
+.regs{display:grid;gap:1px}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:12px}
+.kinds button{border:1px solid var(--rule);background:var(--surface);border-radius:7px;padding:4px 2px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.kinds button i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.kinds button span{font:600 12.5px var(--font-display);color:var(--muted);margin-left:4px}
+.kinds button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.kinds button[aria-pressed="true"] span{color:var(--surface);opacity:.8}
+.rg{border:0;background:transparent;border-radius:8px;display:grid;grid-template-columns:10px 76px minmax(0,1fr) 30px 52px;align-items:center;gap:8px;padding:3px 6px;text-align:left;font-size:13px}
+.rg:hover{background:var(--surface-2)}
+.rg[aria-pressed="true"]{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--rule)}
+.rg i{width:10px;height:10px;border-radius:3px}
+.rg .bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.rg .bar b{display:block;height:100%;border-radius:4px}
+.rg .n{font:600 15px var(--font-display);text-align:right;font-variant-numeric:tabular-nums}
+.rg small{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.regs-head{display:grid;grid-template-columns:10px 76px minmax(0,1fr) 30px 52px;gap:8px;padding:0 6px 2px;font-size:11px;color:var(--muted)}
+.regs-head span:nth-child(4),.regs-head span:nth-child(5){text-align:right}
+.note{margin:10px 0 0;font-size:12.5px;color:var(--muted);line-height:1.6}
+.note b{color:var(--ink);font-weight:500}
+.note .warn{color:var(--r-nea);font-weight:500}
+
+/* flight number badge: neutral chip, region shown by the left bar */
+.fno{display:inline-flex;align-items:center;justify-content:center;min-width:56px;padding:1px 7px 1px 9px;border-radius:6px;font:700 15px/1.35 var(--font-display);letter-spacing:.03em;font-variant-numeric:tabular-nums;
+  background:var(--surface-2);color:var(--ink);box-shadow:inset 3px 0 0 var(--rc);white-space:nowrap}
+.fno.big{font-size:20px;min-width:74px;padding:3px 9px 3px 12px;box-shadow:inset 4px 0 0 var(--rc)}
+
+/* detail */
+.detail-head{display:flex;align-items:flex-start;gap:12px}
+.detail-head h3{margin:0;font-size:17px;font-weight:700}
+.detail-head p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+.detail-head .grow{flex:1;min-width:0}
+.detail-actions{display:flex;gap:6px}
+.legline{display:grid;grid-template-columns:minmax(0,1fr) minmax(70px,1.1fr) minmax(0,1fr);align-items:center;gap:10px;margin:14px 0 10px}
+.legline .end{display:grid;gap:0;min-width:0}
+.legline .end.r{text-align:right}
+.legline .code{font:700 26px/1 var(--font-display);letter-spacing:.04em}
+.legline .city{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legline .tm{font:600 22px/1.1 var(--font-display);font-variant-numeric:tabular-nums;margin-top:6px}
+.legline small{font-size:11.5px;color:var(--muted);line-height:1.4}
+.legline .mid{display:grid;gap:4px;justify-items:center;font-size:12px;color:var(--muted)}
+.track{position:relative;width:100%;height:16px}
+.track::before{content:"";position:absolute;left:0;right:0;top:7px;border-top:2px dashed var(--rule)}
+.track i{position:absolute;left:0;top:7px;height:2px;background:var(--ink);border-radius:1px}
+.track svg{position:absolute;top:0;width:16px;height:16px;margin-left:-8px}
+.track svg path{fill:var(--rc);stroke:var(--surface);stroke-width:1.4}
+.status{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:9px 12px;background:var(--surface-2);border-radius:10px;font-size:13px}
+.status b{font-weight:700}
+.status .spd{margin-left:auto;font:600 20px var(--font-display);font-variant-numeric:tabular-nums}
+.status .spd small{font-size:12px;color:var(--muted);font-family:var(--font-body);font-weight:400;margin-left:2px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.facts div{display:grid}
+.facts b{font:600 17px var(--font-display);font-variant-numeric:tabular-nums}
+.facts span{font-size:11.5px;color:var(--muted)}
+.legs{list-style:none;margin:12px 0 0;padding:10px 0 0;border-top:1px solid var(--rule);display:grid;gap:4px;font-size:13px}
+.legs li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.legs li.cur{font-weight:700}
+.legs li span:last-child{font-size:12px;color:var(--muted)}
+.legs li.cur span:last-child{color:var(--accent)}
+.legs h4{margin:0 0 2px;font-size:12px;font-weight:500;color:var(--muted)}
+.dayrow{display:flex;align-items:center;gap:10px;margin:12px 0 0;font-size:12.5px;color:var(--muted)}
+.dd{display:inline-flex;gap:3px}
+.dd i{font-style:normal;width:20px;height:20px;border-radius:5px;display:inline-grid;place-items:center;font-size:11px;font-weight:500;background:var(--surface-2);color:var(--muted)}
+.dd i.on{background:var(--ink);color:var(--surface)}
+.dd i.cur{outline:2px solid var(--accent);outline-offset:1px}
+.fleet{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.6;border-top:1px solid var(--rule);padding-top:10px}
+
+/* tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--rule);margin:-4px -4px 12px;overflow-x:auto;scrollbar-width:none}
+.tabs button{border:0;background:transparent;padding:7px 10px 9px;font-size:14px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:700}
+.tabs button span{font:600 13px var(--font-display);margin-left:3px;color:var(--muted)}
+
+.chips{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin-bottom:10px}
+.chips button{border:1px solid var(--rule);background:var(--surface);border-radius:7px;padding:4px 0;font-size:13px;font-weight:500}
+.chips button span{font:600 12.5px var(--font-display);color:var(--muted);margin-left:4px}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chips button[aria-pressed="true"] span{color:var(--surface);opacity:.8}
+
+/* departure / arrival board — dark flight information display */
+.board{background:var(--board-bg);color:var(--board-ink);border-radius:12px;padding:12px 14px 10px;color-scheme:dark}
+.board-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--board-rule);padding-bottom:8px;margin-bottom:2px}
+.board-head b{font-size:18px;letter-spacing:.08em}
+.board-head span{font:600 12px var(--font-display);letter-spacing:.14em;color:var(--board-dim);margin-left:8px;text-transform:uppercase}
+.board-head time{font:600 22px var(--font-display);color:var(--board-amber);font-variant-numeric:tabular-nums}
+.bcols,.brow{display:grid;grid-template-columns:46px 62px minmax(0,1fr) auto;gap:8px;align-items:center}
+.bcols{font-size:11px;color:var(--board-dim);padding:4px 0;letter-spacing:.04em}
+.bcols span:last-child{text-align:right}
+.brow{width:100%;border:0;background:transparent;color:inherit;text-align:left;padding:5px 0;border-top:1px solid var(--board-rule);font-size:13.5px}
+.brow:hover,.brow.sel{background:color-mix(in srgb,var(--board-ink) 7%,transparent)}
+.brow .bt{font:600 18px var(--font-display);color:var(--board-amber);font-variant-numeric:tabular-nums}
+.brow .bn{font:600 16px var(--font-display);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:6px}
+.brow .bn i{width:3px;height:14px;border-radius:2px;background:var(--rc)}
+.brow .bd{min-width:0;display:grid;line-height:1.25}
+.brow .bd b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .bd small{color:var(--board-dim);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .bs{display:grid;text-align:right;font-size:12.5px;color:var(--board-ink);white-space:nowrap;line-height:1.25}
+.brow .bs small{color:var(--board-dim);font-size:11px}
+.brow .bs.hot b{color:var(--board-amber);animation:blink 1.2s infinite}
+.brow .bs.air b{color:var(--board-green)}
+.brow .bs.done{color:var(--board-dim)}
+.brow.past{opacity:.55}
+.bnone{padding:14px 0;color:var(--board-dim);font-size:12.5px;border-top:1px solid var(--board-rule);text-align:center}
+.board-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--board-dim)}
+.board-foot button{border:1px solid var(--board-rule);background:transparent;color:var(--board-ink);border-radius:6px;padding:2px 8px;font-size:11.5px}
+
+/* in the air */
+.runlist{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.runrow{width:100%;border:0;background:transparent;border-radius:9px;padding:7px 8px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:10px;row-gap:5px;text-align:left;align-items:center}
+.runrow:hover,.runrow.sel{background:var(--surface-2)}
+.runrow .rm{min-width:0;display:grid}
+.runrow .rm b{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runrow .rm small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runrow .rn{text-align:right;display:grid;font-size:12px;color:var(--muted)}
+.runrow .rn b{font:600 15px var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.runrow .pg{grid-column:1/-1;height:3px;border-radius:2px;background:var(--rule);overflow:hidden}
+.runrow .pg i{display:block;height:100%;width:0;background:var(--rc)}
+.empty{padding:18px 6px;text-align:center;color:var(--muted);font-size:13px}
+.subhead{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 4px;font-size:12px;color:var(--muted)}
+.subhead:first-child{margin-top:0}
+.subhead b{color:var(--ink)}
+
+/* timetable */
+.ttbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:10px}
+.ttbar select,.ttbar input[type=search]{border:1px solid var(--rule);border-radius:8px;background:var(--surface);padding:4px 8px}
+.ttbar input[type=search]{width:150px}
+.ttbar label{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.ttwrap{overflow:auto;max-height:600px;border:1px solid var(--rule);border-radius:10px}
+.tt{border-collapse:collapse;font-size:13px;white-space:nowrap;min-width:100%}
+.tt th{position:sticky;top:0;background:var(--surface-2);font-size:12px;font-weight:700;padding:6px 4px;text-align:center;z-index:1;border-bottom:1px solid var(--rule)}
+.tt td{padding:3px 4px;text-align:center;font:500 14px var(--font-display);font-variant-numeric:tabular-nums;border-bottom:1px solid var(--rule)}
+.tt td.no{font-weight:700;text-align:left}
+.tt td.rte{font-size:13px;letter-spacing:.02em}
+.tt td.dy{font-family:var(--font-body);font-size:11px;color:var(--muted);white-space:normal;min-width:44px;line-height:1.3}
+.tt td .ps{color:var(--muted);font-family:var(--font-body);font-size:10.5px;margin-left:1px}
+.tt tr.g td{background:var(--surface);text-align:left;font:700 13px var(--font-body);padding:9px 8px 4px;border-bottom:1px solid var(--rule);cursor:pointer}
+.tt tr.g td i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--rc);margin-right:7px;vertical-align:1px}
+.tt tr.g td small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.tt tr.r{cursor:pointer}
+.tt tr.r:hover td{background:var(--surface-2)}
+.tt tr.run td{background:var(--accent-soft)}
+.tt tr.run td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tt tr.off td{opacity:.45}
+.tt tr.sel td{outline:1.5px solid var(--accent);outline-offset:-1.5px}
+.ttcount{font-size:12px;color:var(--muted);margin:8px 2px 0}
+.tag{display:inline-block;font:500 10.5px/1.5 var(--font-body);padding:0 4px;border-radius:4px;background:var(--surface-2);color:var(--muted);margin-left:4px;letter-spacing:0;white-space:nowrap}
+.tag.ex{background:var(--accent-soft);color:var(--accent)}
+
+/* destinations */
+.ports{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.ports div{background:var(--surface-2);border-radius:10px;padding:7px 9px;display:grid;min-width:0}
+.ports b{font:600 22px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.ports span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.dgroup h4{margin:10px 4px 4px;font-size:12.5px;display:flex;align-items:center;gap:7px}
+.dgroup h4 i{width:9px;height:9px;border-radius:2px;background:var(--rc)}
+.dgroup h4 small{font-weight:400;color:var(--muted);margin-left:auto}
+.dest{width:100%;border:0;background:transparent;border-radius:8px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:5px 8px;text-align:left}
+.dest:hover,.dest.sel{background:var(--surface-2)}
+.dest .dn{display:grid;min-width:0;line-height:1.3}
+.dest .dn b{font-size:13.5px}
+.dest .dn b span{font:600 12px var(--font-display);color:var(--muted);margin-left:6px;letter-spacing:.05em}
+.dest .dn small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dest .df{font:600 15px var(--font-display);font-variant-numeric:tabular-nums;text-align:right}
+.dest .df small{font:400 11px var(--font-body);color:var(--muted);margin-left:2px}
+.dest .dt{font:500 13px var(--font-display);color:var(--muted);min-width:46px;text-align:right}
+
+/* audit */
+.verdict{background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;line-height:1.65}
+.verdict b{font-weight:700}
+.audit h4{margin:16px 4px 6px;font-size:13.5px;font-weight:700}
+.audit h4 small{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.audit p{margin:0 4px 8px;font-size:12.5px;color:var(--muted);line-height:1.65}
+.audit a{color:inherit}
+.awrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px}
+.atab{border-collapse:collapse;width:100%;font-size:12.5px}
+.atab th{background:var(--surface-2);font-size:11.5px;font-weight:700;padding:5px 8px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--rule)}
+.atab td{padding:5px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+.atab tr:last-child td{border-bottom:0}
+.atab td.n,.atab th.n{text-align:right;font:600 14px var(--font-display);font-variant-numeric:tabular-nums}
+.atab th.n{font:700 11.5px var(--font-body)}
+.atab td.no{font:700 14px var(--font-display);white-space:nowrap}
+.atab td.ok{color:var(--live);font-weight:700}
+.atab td.warn{color:var(--accent);font-weight:700}
+.atab small{color:var(--muted);font-size:11.5px}
+.dests{display:flex;flex-wrap:wrap;gap:3px;margin:3px 0 0}
+.dests button{border:1px solid var(--rule);background:var(--surface);border-radius:5px;padding:0 5px;font-size:11.5px;line-height:1.6}
+.dests button:hover{background:var(--surface-2)}
+.audit details{margin:4px 0 0}
+.audit summary{cursor:pointer;font-size:12.5px;color:var(--muted);margin:0 4px 6px}
+
+.foot{font-size:11.5px;color:var(--muted);line-height:1.7;padding:2px 4px 8px}
+.foot a{color:inherit}
+
+@media (max-width:1280px){   /* a narrow map: the full legend would cover Taiwan */
+  .legend{grid-template-columns:repeat(2,auto);column-gap:2px;padding:4px;min-width:0}
+  .legend .lh,.legend small{display:none}
+  .legend .lg{padding:1px 5px;gap:5px;font-size:11.5px}
+  .legend .lg b{font-size:13px;min-width:14px}
+}
+@media (max-width:960px){
+  html,body,.app{height:auto}
+  main{grid-template-columns:minmax(0,1fr)}
+  .mapwrap{height:66vh;min-height:420px}
+  .rail{overflow:visible}
+  .top{position:static}
+  .clock{margin-left:0}
+}
+@media (max-width:560px){
+  .clock time{font-size:32px}
+  .play{gap:6px}
+  .play input[type=range]{min-width:60px}
+  .play output{min-width:38px}
+  .find{flex:1 1 100%}
+  .find input{flex:1;width:0}
+  .legend{grid-template-columns:repeat(2,auto);column-gap:2px;padding:4px;min-width:0}
+  .legend .lh{display:none}
+  .legend .lg{padding:1px 5px;gap:5px;font-size:11.5px}
+  .legend .lg b{font-size:13px;min-width:14px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .legend{font-size:12px;min-width:118px}
+  .legend small{display:none}
+  .views button{padding:4px 7px}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion: reduce){
+  .pill.live i,.pl.sel .ring,.brow .bs.hot b{animation:none}
+  .pl.sel .ring{opacity:1}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="-14 -14 28 28" aria-hidden="true">
+        <circle r="13" fill="var(--surface-2)" stroke="var(--rule)"/>
+        <path transform="rotate(-35) scale(.82)" d="M12,0C12,-1 11,-1.6 9.5,-1.6H3L-3,-10.5H-5.5L-1.5,-1.6H-7L-9.3,-4.6H-11L-9.7,0L-11,4.6H-9.3L-7,1.6H-1.5L-5.5,10.5H-3L3,1.6H9.5C11,1.6 12,1 12,0Z" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <h1>台灣三大航空航班動態系統</h1>
+        <p id="brandSub">長榮・華航・星宇 · 桃園、松山、清泉崗、高雄國際線 · 2026/27 冬季班表 · 非官方展示</p>
+      </div>
+    </div>
+    <div class="clock">
+      <time id="clock" class="num">--:--:--</time>
+      <div class="when">
+        <span id="modePill" class="pill live"><i></i><span>即時</span></span>
+        <b id="whenText">—</b>
+      </div>
+    </div>
+    <div class="toolbar">
+      <label class="field" for="datePick">日期 <input type="date" id="datePick"></label>
+      <div class="play">
+        <button class="btn" id="liveBtn" aria-pressed="true" title="回到現在時間">● 即時</button>
+        <button class="btn icon" id="playBtn" aria-label="暫停">❚❚</button>
+        <select id="speedSel" class="btn" aria-label="模擬速度">
+          <option value="1">1×</option><option value="60">60×</option><option value="300" selected>300×</option><option value="1200">1200×</option><option value="3600">3600×</option>
+        </select>
+        <input type="range" id="slider" min="0" max="1439" step="1" value="480" aria-label="模擬時間（臺北）">
+        <output id="sliderOut" for="slider">08:00</output>
+      </div>
+      <form class="find" id="findForm" role="search">
+        <input type="search" id="findQ" placeholder="航班或城市，如 BR189、CI100、東京" aria-label="查詢航班或城市" autocomplete="off">
+        <button class="btn" type="submit">查詢</button>
+        <span class="msg" id="findMsg" aria-live="polite"></span>
+      </form>
+    </div>
+  </header>
+
+  <main>
+    <section class="mapwrap" aria-label="三家航空國際航線圖">
+      <svg id="map" role="img" aria-label="世界地圖、三家航空國際航線與推算的航班位置">
+        <defs><clipPath id="clipW"><rect id="clipRect"/></clipPath></defs>
+        <rect id="sea" fill="var(--sea)"/>
+        <g clip-path="url(#clipW)">
+          <path id="grat"/>
+          <path id="land"/>
+          <path id="taiwan"/>
+          <path id="borders"/>
+          <path id="night"/>
+        </g>
+        <g id="fixedLabels"></g>
+        <g id="routes"></g>
+        <g id="selRoute"></g>
+        <g id="airports"></g>
+        <g id="planes"></g>
+        <g id="planeLabels"></g>
+      </svg>
+      <div class="ov legend" id="legend" aria-live="polite"></div>
+      <div class="mapctl">
+        <div class="ov views" id="views" role="group" aria-label="地圖範圍">
+          <button data-v="all" aria-pressed="true">全航網</button>
+          <button data-v="apac" aria-pressed="false">亞太</button>
+          <button data-v="nea" aria-pressed="false">東北亞</button>
+          <button data-v="sea" aria-pressed="false">東南亞</button>
+          <button data-v="eu" aria-pressed="false">歐洲</button>
+          <button data-v="na" aria-pressed="false">北美</button>
+        </div>
+      </div>
+      <div class="ov zoom">
+        <button id="zIn" aria-label="放大">+</button>
+        <button id="zOut" aria-label="縮小">−</button>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <section class="card" aria-labelledby="sumTitle">
+        <div class="card-head"><h2 id="sumTitle">航班概況</h2><small>臺北時間 UTC+8</small></div>
+        <div class="kpis">
+          <div class="kpi"><b id="kDep">0</b><span>本日出發</span></div>
+          <div class="kpi"><b id="kArr">0</b><span>本日抵達</span></div>
+          <div class="kpi"><b id="kAir">0</b><span>目前空中</span></div>
+          <div class="kpi"><b id="kDest">0</b><span>國際航點</span></div>
+        </div>
+        <div class="kinds" id="kinds" role="group" aria-label="航班類別，可複選"></div>
+        <div class="regs-head"><span></span><span>區域</span><span></span><span>出發</span><span>空中</span></div>
+        <div class="regs" id="regs"></div>
+        <p class="note" id="sumNote"></p>
+      </section>
+
+      <section class="card" id="detail" hidden aria-live="polite"></section>
+
+      <section class="card">
+        <div class="tabs" role="tablist">
+          <button role="tab" aria-selected="true" data-tab="dep">出發<span id="tnDep">0</span></button>
+          <button role="tab" aria-selected="false" data-tab="arr">抵達<span id="tnArr">0</span></button>
+          <button role="tab" aria-selected="false" data-tab="air">空中<span id="tnAir">0</span></button>
+          <button role="tab" aria-selected="false" data-tab="tt">時刻表</button>
+          <button role="tab" aria-selected="false" data-tab="dest">航點</button>
+          <button role="tab" aria-selected="false" data-tab="audit">查核</button>
+        </div>
+        <div id="pane-dep"></div>
+        <div id="pane-arr" hidden></div>
+        <div id="pane-air" hidden></div>
+        <div id="pane-tt" hidden>
+          <div class="ttbar">
+            <select id="ttReg" aria-label="區域"></select>
+            <input type="search" id="ttQ" placeholder="航班、城市或代碼" aria-label="搜尋時刻表">
+            <select id="ttScope" aria-label="班表範圍"><option value="week">所選日期當週</option><option value="day">只列所選日期</option><option value="season">整季</option></select>
+          </div>
+          <div class="ttwrap"><table class="tt" id="tt"></table></div>
+          <p class="ttcount" id="ttCount"></p>
+        </div>
+        <div id="pane-dest" hidden></div>
+        <div id="pane-audit" class="audit" hidden></div>
+      </section>
+
+      <p class="foot" id="foot">
+班表分別來自<a href="https://ctyangthu.github.io/eva-live/" target="_blank" rel="noopener">長榮</a>、<a href="https://ctyangthu.github.io/ci-live/" target="_blank" rel="noopener">華航</a>、<a href="https://ctyangthu.github.io/jx-live/" target="_blank" rel="noopener">星宇</a>三個單一航空系統，來源與查核方式見查核分頁。航班狀態與位置依表定時間與大圓航線推算，不含延誤、取消、改降等即時資訊。本系統為非官方展示，與各航空公司無關，實際航班請以各航空公司公告為準。
+      </p>
+    </aside>
+  </main>
+</div>
+
+<script id="flights-data" type="application/json">__FLIGHTS_JSON__</script>
+<script id="airports-data" type="application/json">__AIRPORTS_JSON__</script>
+<script id="map-data" type="application/json">__MAP_JSON__</script>
+<script id="audit-data" type="application/json">__AUDIT_JSON__</script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const FL = JSON.parse($('flights-data').textContent);
+const APD = JSON.parse($('airports-data').textContent);
+const MAP = JSON.parse($('map-data').textContent);
+const AUDIT = JSON.parse($('audit-data').textContent);
+const SVGNS = 'http://www.w3.org/2000/svg';
+const DAY = ['一','二','三','四','五','六','日'];
+const RAD = Math.PI/180, EARTH_KM = 6371;
+const TW = new Set(['TPE','TSA','RMQ','KHH']);
+const AC = {'351':'空中巴士 A350-1000','359':'空中巴士 A350-900','339':'空中巴士 A330-900neo','77W':'波音 777-300ER','333':'空中巴士 A330-300','332':'空中巴士 A330-200','32Q':'空中巴士 A321neo','32C':'空中巴士 A321neo（235 座）','321':'空中巴士 A321','320':'空中巴士 A320','32N':'空中巴士 A320neo','319':'空中巴士 A319',
+  '738':'波音 737-800','73H':'波音 737-800','772':'波音 777-200','781':'波音 787-10','789':'波音 787-9','788':'波音 787-8','76W':'波音 767-300ER','EQV':'依當日調度'};
+const acName = c => c.split('/').map(x => AC[x] || x).join('、');
+const KIND = {BR:'長榮', B7:'立榮', CI:'華航', AE:'華信', JX:'星宇', CS:'他航共掛'};
+const NAME = {BR:'長榮航空', B7:'立榮航空', CI:'中華航空', AE:'華信航空', JX:'星宇航空'};
+const OPER = {JL:'日本航空', KE:'大韓航空', MH:'馬來西亞航空', VN:'越南航空', PR:'菲律賓航空', BI:'汶萊皇家航空', MU:'中國東方航空', CZ:'中國南方航空', FM:'上海航空', MF:'廈門航空', KL:'荷蘭皇家航空', EY:'阿提哈德航空', SQ:'新加坡航空', TG:'泰國航空', HU:'海南航空', HO:'吉祥航空', CA:'中國國際航空', HX:'香港航空', NX:'澳門航空', NZ:'紐西蘭航空', TK:'土耳其航空', NH:'全日空', ZH:'深圳航空', SC:'山東航空', OZ:'韓亞航空', '3U':'四川航空', B7:'立榮航空', BR:'長榮航空'};
+const operName = s => s.kind !== 'CS' ? NAME[s.kind] : s.op ? `${OPER[s.op.slice(0,2)] || s.op.slice(0,2)}${s.op.length > 2 ? ' ' + s.op : ''}` : '合作航空公司';
+const REG = APD.regions, REG_ORDER = ['nea','cn','sea','sa','oc','eu','na','me'].filter(r => REG[r]);
+const PLANE = 'M12,0C12,-1 11,-1.6 9.5,-1.6H3L-3,-10.5H-5.5L-1.5,-1.6H-7L-9.3,-4.6H-11L-9.7,0L-11,4.6H-9.3L-7,1.6H-1.5L-5.5,10.5H-3L3,1.6H9.5C11,1.6 12,1 12,0Z';
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const pad = n => String(n).padStart(2,'0');
+const num = n => Math.round(n).toLocaleString('en-US');
+const rc = r => `--rc:var(--r-${r})`;
+const kc = s => `--rc:var(--k-${s.kind === 'CS' ? s.air : s.kind})`;   // planes and flight numbers take the airline's colour
+
+/* ── projection: Miller cylindrical centred on 143°E (same as tools/build_map.py) ── */
+const P = MAP.proj, W = P.w, H = P.h;
+const relLon = lon => ((lon - P.lon0 + 540) % 360) - 180;
+const projRel = (rl, lat) => [rl*RAD*P.R + W/2, (P.top - 1.25*Math.log(Math.tan(Math.PI/4 + 0.4*clamp(lat,-85,85)*RAD)))*P.R];
+const proj = (lat, lon) => projRel(relLon(lon), lat);
+const vec = (lat, lon) => { const a = lat*RAD, b = lon*RAD; return [Math.cos(a)*Math.cos(b), Math.cos(a)*Math.sin(b), Math.sin(a)]; };
+const toLL = v => [Math.atan2(v[2], Math.hypot(v[0], v[1]))/RAD, Math.atan2(v[1], v[0])/RAD];
+const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+function slerp(A, B, om, s){
+  if (om < 1e-9) return A;
+  const so = Math.sin(om), k0 = Math.sin((1-s)*om)/so, k1 = Math.sin(s*om)/so;
+  return [A[0]*k0 + B[0]*k1, A[1]*k0 + B[1]*k1, A[2]*k0 + B[2]*k1];
+}
+// great-circle polyline; no route crosses the map edge (mid-Atlantic), so longitudes stay continuous
+function gcPts(A, B, om, s0 = 0, s1 = 1){
+  const n = Math.max(2, Math.ceil(om/RAD*Math.abs(s1-s0)/0.8)), pts = [];
+  for (let i = 0; i <= n; i++){ const [la, lo] = toLL(slerp(A, B, om, s0 + (s1-s0)*i/n)); pts.push(proj(la, lo)); }
+  return pts;
+}
+const dPath = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
+
+/* ── airports ─────────────────────────────── */
+const AP = {};
+for (const [code, [city, airport, en, country, region, lat, lon, tz]] of Object.entries(APD.airports))
+  AP[code] = {code, city, airport, en, country, region, lat, lon, tz, v: vec(lat, lon), xy: proj(lat, lon), wkOut: 0, wkIn: 0};
+const perCity = {};
+for (const a of Object.values(AP)) perCity[a.city] = (perCity[a.city] || 0) + 1;
+for (const a of Object.values(AP)){
+  a.short = a.airport.replace(/國際機場$|機場$/, '');
+  a.name = perCity[a.city] > 1 ? a.city + a.short : a.city;     // 東京成田 / 東京羽田
+}
+
+/* ── time helpers. Taiwan has no DST, so Taipei time is a fixed +8 h offset ── */
+const TP = 8*3600e3;
+function tpParts(t){ const d = new Date(t + TP); return {y:d.getUTCFullYear(), mo:d.getUTCMonth()+1, d:d.getUTCDate(), h:d.getUTCHours(), mi:d.getUTCMinutes(), s:d.getUTCSeconds(), wd:(d.getUTCDay()+6)%7}; }
+const dateAdd = (D, n) => { const t = new Date(Date.UTC(D.y, D.mo-1, D.d+n)); return {y:t.getUTCFullYear(), mo:t.getUTCMonth()+1, d:t.getUTCDate()}; };
+const wdOf = D => (new Date(Date.UTC(D.y, D.mo-1, D.d)).getUTCDay()+6)%7;
+const dkey = D => `${D.y}-${pad(D.mo)}-${pad(D.d)}`;
+const parseKey = k => { const [y, mo, d] = k.split('-').map(Number); return {y, mo, d}; };
+const tpMidnight = D => Date.UTC(D.y, D.mo-1, D.d) - TP;
+const toMin = s => { const [h, m] = s.split(':').map(Number); return h*60 + m; };
+const fmtD = D => `${D.mo}/${D.d}（${DAY[wdOf(D)]}）`;
+const fmtDur = m => { m = Math.max(0, Math.round(m)); const h = Math.floor(m/60); return h ? `${h} 小時 ${m%60} 分` : `${m} 分`; };
+const fmtDurS = m => { m = Math.max(0, Math.round(m)); return `${Math.floor(m/60)}h${pad(m%60)}m`; };
+const tpHM = t => { const p = tpParts(t); return pad(p.h) + ':' + pad(p.mi); };
+const DTF = {};
+function tzOffset(tz, t){   // ms to add to UTC to get local wall time
+  const f = DTF[tz] || (DTF[tz] = new Intl.DateTimeFormat('en-US', {timeZone:tz, hourCycle:'h23', year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}));
+  const p = {}; for (const x of f.formatToParts(t)) p[x.type] = x.value;
+  return Date.UTC(+p.year, +p.month-1, +p.day, +p.hour % 24, +p.minute) - Math.floor(t/6e4)*6e4;
+}
+function zoned(D, min, tz){  // local wall time on date D → UTC ms
+  const g = Date.UTC(D.y, D.mo-1, D.d, 0, min);
+  return g - tzOffset(tz, g - tzOffset(tz, g));
+}
+
+/* ── flight segments ─────────────────────────────── */
+const [SEASON0, SEASON1] = FL.valid;
+const kinds = new Set(['BR','B7','CI','AE','JX']);   // 他航共掛 starts switched off
+const shown = s => kinds.has(s.kind);
+const operates = (s, D) => {
+  const k = dkey(D);
+  if (k < SEASON0 || k > SEASON1) return false;
+  if (s.only) return s.only.includes(k);
+  return s.days[wdOf(D)] && !(s.from && k < s.from) && !(s.to && k > s.to) && !s.skip.includes(k);
+};
+function firstFlight(s){
+  for (let D = parseKey(SEASON0), n = 0; n < 160; n++, D = dateAdd(D, 1)) if (operates(s, D)) return D;
+  return parseKey(SEASON0);
+}
+// a leg that does not touch Taiwan (Brisbane–Auckland) belongs to its far end, the airport with no flight from Taiwan
+const DIRECT = new Set(FL.segs.filter(r => TW.has(r.o)).map(r => r.d));
+const idCount = {};
+const SEGS = FL.segs.map((r, i) => {
+  const base = `${r.no}-${r.o}${r.d}`, nth = idCount[base] = (idCount[base] || 0) + 1;
+  const A = AP[r.o].v, B = AP[r.d].v, om = Math.acos(clamp(dot(A, B), -1, 1));
+  const dir = TW.has(r.o) ? 'out' : TW.has(r.d) ? 'in' : 'via';
+  const far = dir === 'out' ? r.d : dir === 'in' ? r.o : (DIRECT.has(r.d) ? r.o : r.d);
+  const days = [...'1234567'].map(c => r.days.includes(c));
+  return {...r, i, id: nth > 1 ? `${base}~${nth}` : base, dir, far, region: AP[far].region, days, skip: r.skip ? r.skip.split(',') : [], only: r.only ? r.only.split(',') : null,
+          ex: r.ex || '', wk: 0, depM: toMin(r.dep), arrM: toMin(r.arr), A, B, om, km: om*EARTH_KM};
+});
+for (const s of SEGS){   // block time on the line's own first date, so daylight-saving lines measure correctly
+  const D = firstFlight(s);
+  s.blk = (zoned(dateAdd(D, s.plus), s.arrM, AP[s.d].tz) - zoned(D, s.depM, AP[s.o].tz))/6e4;
+}
+const BYNO = new Map();
+for (const s of SEGS){ if (!BYNO.has(s.no)) BYNO.set(s.no, []); BYNO.get(s.no).push(s); }
+for (const segs of BYNO.values()){
+  // several lines per airport pair are timings of one flight; more than one pair is a multi-stop flight (CI53, CI54)
+  const pairs = [...new Set(segs.map(s => s.o + s.d))];
+  const multi = pairs.length > 1, rep = new Map();
+  for (const s of segs) if (!rep.has(s.o + s.d)) rep.set(s.o + s.d, s);
+  const chain = multi ? [...rep.values()].sort((a, b) => (segs.some(v => v.d === a.o) - segs.some(v => v.d === b.o))) : null;
+  for (const s of segs){
+    if (multi){ s.leg = chain.findIndex(l => l.o === s.o && l.d === s.d); s.legs = chain.map((l, k) => k === s.leg ? s : l); }
+    else { s.leg = 0; s.legs = [s]; }
+    s.out = s.legs[0].dir === 'out';
+  }
+}
+const FAR_ALL = [...new Set(SEGS.map(s => s.far))].map(c => AP[c]);
+const ROUTES = new Map();
+for (const s of SEGS){
+  const k = [s.o, s.d].sort().join('-');
+  let r = ROUTES.get(k); if (!r){ r = {k, a:s.o, b:s.d, region:s.region, segs:[]}; ROUTES.set(k, r); }
+  r.segs.push(s);
+}
+for (const r of ROUTES.values()){ const s = r.segs[0]; r.pts = gcPts(s.A, s.B, s.om); r.csOnly = r.segs.every(v => v.kind === 'CS'); }
+let FARS = [], WK_OUT = 0, weekKey = '';
+const mondayOf = D => dateAdd(D, -wdOf(D));
+const weekDates = D => { const m = mondayOf(D); return [0,1,2,3,4,5,6].map(n => dateAdd(m, n)); };
+function recount(D, force){   // flights per week change through the season, so they are counted for the selected week
+  const key = dkey(mondayOf(D)) + [...kinds].join(); if (!force && key === weekKey) return; weekKey = key;
+  const week = weekDates(D);
+  for (const a of Object.values(AP)){ a.wkOut = 0; a.wkIn = 0; }
+  for (const s of SEGS){
+    s.wk = week.filter(d => operates(s, d)).length;
+    if (!shown(s)) continue;
+    if (s.out) AP[s.d].wkOut += s.wk;
+    if (s.legs[s.legs.length-1].dir === 'in') AP[s.o].wkIn += s.wk;
+    if (TW.has(s.o)) AP[s.o].wkOut += s.wk;
+  }
+  WK_OUT = SEGS.filter(s => shown(s) && TW.has(s.o)).reduce((n, s) => n + s.wk, 0);
+  FARS = FAR_ALL.filter(a => SEGS.some(s => s.far === a.code && shown(s) && s.wk));
+}
+const md = k => `${+k.slice(5,7)}/${+k.slice(8)}`;
+const daysText = s => {
+  if (s.only) return s.only.length > 4 ? `${s.only.length} 個日期（${md(s.only[0])}–${md(s.only[s.only.length-1])}）` : s.only.map(md).join('、');
+  if (s.from && s.from === s.to) return md(s.from);
+  const n = s.days.filter(Boolean).length;
+  return (n === 7 ? '每日' : '週' + s.days.map((v, i) => v ? DAY[i] : '').join('')) + (s.from ? ` · ${md(s.from)} 起` : '') + (s.to ? ` · 至 ${md(s.to)}` : '') +
+    (s.skip.length ? ` · ${s.skip.length > 3 ? s.skip.length + ' 日' : s.skip.map(md).join('、')}停飛` : '');
+};
+const fno = no => no.slice(0,2) + ' ' + no.slice(2);
+const plusTxt = n => n > 0 ? '+' + n : String(n);
+
+/* instances: one segment flown on one origin-local date */
+const INST = new Map();
+function inst(s, D){
+  const key = s.id + '@' + dkey(D); let x = INST.get(key);
+  if (!x){
+    x = {key, s, D, t0: zoned(D, s.depM, AP[s.o].tz), t1: zoned(dateAdd(D, s.plus), s.arrM, AP[s.d].tz)};
+    x.blk = (x.t1 - x.t0)/6e4; INST.set(key, x);
+  }
+  return x;
+}
+let WIN = [], winKey = '', DEPS = [], ARRS = [];
+function buildWindow(D){   // origin-local dates D−2 … D+1 cover every flight in the air on Taipei date D
+  const k = dkey(D) + [...kinds].join(); if (k === winKey) return; winKey = k; WIN = [];
+  recount(D);
+  for (let n = -2; n <= 1; n++){ const dd = dateAdd(D, n); for (const s of SEGS) if (shown(s) && operates(s, dd)) WIN.push(inst(s, dd)); }
+  WIN.sort((a, b) => a.t0 - b.t0);
+  const day = dkey(D);
+  DEPS = WIN.filter(x => x.s.dir === 'out' && dkey(x.D) === day);
+  ARRS = WIN.filter(x => x.s.dir === 'in' && dkey(dateAdd(x.D, x.s.plus)) === day).sort((a, b) => a.t1 - b.t1);
+}
+
+/* ── flight phase, position and estimates ─────────────────────────────── */
+const TAXI_OUT = 14, TAXI_IN = 6;   // minutes of the block time spent on the ground
+const prof = (u, a) => { const v = 1/(1-a); return u < a ? v*u*u/(2*a) : u > 1-a ? 1 - v*(1-u)*(1-u)/(2*a) : v*(a/2 + (u-a)); };
+const vprof = (u, a) => { const v = 1/(1-a); return u < a ? v*u/a : u > 1-a ? v*(1-u)/a : v; };
+function fstate(x, t){
+  const m = (t - x.t0)/6e4;
+  if (m < 0) return {ph:'pre', m};
+  if (m > x.blk) return {ph:'post', m};
+  const air = Math.max(10, x.blk - TAXI_OUT - TAXI_IN), u = clamp((m - TAXI_OUT)/air, 0, 1), a = Math.min(.4, 22/air);
+  const ground = m < TAXI_OUT || m > x.blk - TAXI_IN;
+  const cruise = x.s.km < 1000 ? 32000 : x.s.km < 3000 ? 36000 : 38000;
+  return {ph:'air', m, u, s: prof(u, a), ground, taxiOut: m < TAXI_OUT,
+          v: ground ? 0 : x.s.km/(air/60)*vprof(u, a),
+          alt: ground ? 0 : Math.round(cruise*Math.min(1, u*air/22, (1-u)*air/28)/500)*500};
+}
+const fracOf = (x, t) => { if (!x) return 0; const f = fstate(x, t); return f.ph === 'pre' ? 0 : f.ph === 'post' ? 1 : f.s; };
+function posAt(s, fr){ const [la, lo] = toLL(slerp(s.A, s.B, s.om, fr)); return proj(la, lo); }
+function heading(s, fr){ const a = posAt(s, Math.max(0, fr - .002)), b = posAt(s, Math.min(1, fr + .002)); return Math.atan2(b[1]-a[1], b[0]-a[0])/RAD; }
+
+/* ── state ─────────────────────────────── */
+const state = {mode:'live', t:Date.now(), speed:300, playing:true, D:null, sel:null, selSeg:null,
+  tab:'dep', port:'all', showPast:false, ttReg:'all', ttQ:'', ttScope:'week', ap:null, hide:new Set(), view:'all'};
+function enterSim(play = true){ if (state.mode === 'sim') return; state.mode = 'sim'; state.playing = play; syncControls(); }
+function goLive(){ state.mode = 'live'; state.t = Date.now(); syncControls(); }
+function syncDate(){
+  const p = tpParts(state.t), D = {y:p.y, mo:p.mo, d:p.d};
+  if (state.D && dkey(D) === dkey(state.D)) return;
+  state.D = D; recount(D); buildWindow(D);
+  if (document.activeElement !== $('datePick')) $('datePick').value = dkey(D);
+  renderPanels(true);
+}
+
+/* ── map ─────────────────────────────── */
+const svg = $('map');
+let vb = {x:0, y:0, w:W, h:H};
+function svgEl(tag, attrs, html){ const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+const sea = $('sea'); sea.setAttribute('x', -W); sea.setAttribute('y', -H); sea.setAttribute('width', W*3); sea.setAttribute('height', H*3);
+// land copies need the horizontal clip; the night shade must run past the map's south edge
+const clip = $('clipRect'); clip.setAttribute('y', -H); clip.setAttribute('width', W); clip.setAttribute('height', H*3);
+$('land').setAttribute('d', MAP.land); $('borders').setAttribute('d', MAP.borders); $('taiwan').setAttribute('d', MAP.taiwan);
+{
+  let g = '';
+  for (let lon = -180; lon < 180; lon += 30){ const x = proj(0, lon)[0]; if (x > 1 && x < W-1) g += `M${x.toFixed(1)} 0V${H}`; }
+  for (const lat of [-30, 0, 30, 60]){ const y = proj(lat, P.lon0)[1]; g += `M0 ${y.toFixed(1)}H${W}`; }
+  $('grat').setAttribute('d', g);
+}
+const fixed = [];   // elements kept at constant screen size: {el,x,y}
+function addFixed(el, x, y, parent){ (parent || $('fixedLabels')).appendChild(el); fixed.push({el, x, y}); return el; }
+[['太平洋', 24, -165, ''], ['印度洋', -18, 80, ''], ['南海', 14.5, 114.5, 'small'], ['東海', 29.5, 125.5, 'small'], ['日本海', 40, 134.5, 'small']].forEach(([txt, lat, lon, cls]) => {
+  const [x, y] = proj(lat, lon); const g = svgEl('g', {});
+  g.appendChild(svgEl('text', {class:'sea-label ' + cls, 'text-anchor':'middle'}, txt)); addFixed(g, x, y);
+});
+
+for (const r of ROUTES.values()){
+  r.el = svgEl('path', {class:'rt' + (r.csOnly ? ' cs' : ''), d:dPath(r.pts), style:rc(r.region)});
+  $('routes').appendChild(r.el);
+}
+
+// label offset in screen px relative to the dot: [dx, dy, anchor]
+const LBL = {TPE:[-10,4,'end'], TSA:[8,-6,'start'], RMQ:[-9,6,'end'], KHH:[-9,6,'end'], HND:[-8,13,'end'], NRT:[8,1,'start'], KIX:[-8,12,'end'], NGO:[8,8,'start'], TOY:[8,-2,'start'], HIJ:[-8,-3,'end'], TAK:[8,10,'start'], KOJ:[-8,10,'end'], KMJ:[8,10,'start'], FOC:[-8,2,'end'], XMN:[-8,8,'end'], ONT:[8,12,'start'], PHX:[8,4,'start'], BNE:[8,2,'start'], SYD:[8,6,'start'], MEL:[-8,6,'end'], PRG:[8,-2,'start'], FRA:[-8,6,'end'], FCO:[8,6,'start'], PEN:[-8,-2,'end'],
+  SHA:[-8,-4,'end'], PVG:[8,7,'start'], MFM:[-8,8,'end'], HKG:[8,8,'start'], CRK:[-8,-3,'end'], MNL:[-8,11,'end'], CEB:[8,8,'start'],
+  SEA:[8,9,'start'], YVR:[8,-4,'start'], SFO:[-8,1,'end'], LAX:[-8,9,'end'], JFK:[8,-3,'start'],
+  LHR:[-8,1,'end'], AMS:[8,-3,'start'], VIE:[8,9,'start'],
+  SGN:[8,8,'start'], KTI:[-8,6,'end'], HAN:[-8,2,'end'], DAD:[8,6,'start'], CNX:[-8,2,'end'], BKK:[-8,10,'end'], SIN:[8,8,'start'], KUL:[-8,5,'end'],
+  ICN:[-8,2,'end'], GMP:[8,-3,'start'], PUS:[8,6,'start'], FUK:[-8,6,'end'], SYO:[8,2,'start'], CTS:[8,4,'start'], OKA:[8,8,'start']};
+const apEls = new Map();
+for (const a of Object.values(AP)){
+  const tw = TW.has(a.code), hub = a.code === 'TPE', [lx, ly, anc] = LBL[a.code] || [8, 4, 'start'];
+  const g = svgEl('g', {class:`ap${tw ? ' tw' : ''}${hub ? ' hub' : ''}`, 'data-ap':a.code, role:'button', 'aria-label':`${a.name} ${a.code}`, style:rc(a.region)});
+  g.innerHTML = `<circle class="hit" r="11"/><circle class="dot" r="${hub ? 5.5 : tw ? 4 : 3.6}"/>` +
+    `<text class="lb" x="${lx}" y="${ly}" text-anchor="${anc}">${a.name}<tspan class="cd" dx="3">${a.code}</tspan></text>`;
+  addFixed(g, a.xy[0], a.xy[1], $('airports'));
+  a.lw = a.name.length*(hub ? 13.5 : 12) + 25; a.lp = [lx, ly, anc];
+  apEls.set(a.code, {g, lab:g.querySelector('.lb')});
+}
+recount(parseKey('2026-11-09'));   // label priority: busiest airports of a regular week
+const LABEL_ORDER = Object.values(AP).sort((a, b) => (b.code === 'TPE') - (a.code === 'TPE') || (b.wkOut + b.wkIn) - (a.wkOut + a.wkIn));
+function placeLabels(){   // greedy: busiest airports first, skip labels that would overlap
+  const s = pxPerUnit, boxes = Object.values(AP).filter(a => !a.off).map(a => { const x = a.xy[0]*s, y = a.xy[1]*s; return [x-4, y-4, x+4, y+4]; });
+  for (const a of LABEL_ORDER){
+    if (a.off) continue;
+    const x = a.xy[0]*s, y = a.xy[1]*s, [dx, dy, anc] = a.lp, w = a.lw;
+    const x0 = anc === 'end' ? x + dx - w : x + dx, b = [x0, y + dy - 11, x0 + w, y + dy + 3];
+    const must = a.code === state.ap || (state.selSeg && (state.selSeg.o === a.code || state.selSeg.d === a.code));
+    const ok = must || !boxes.some(c => !(b[2] < c[0] || b[0] > c[2] || b[3] < c[1] || b[1] > c[3]));
+    apEls.get(a.code).lab.style.display = ok ? '' : 'none';
+    if (ok) boxes.push(b);
+  }
+}
+
+let pxPerUnit = 1, mapRect = {width:1, height:1, left:0, top:0};
+function measure(){ mapRect = svg.getBoundingClientRect(); applyVB(); }
+function applyVB(){
+  svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  pxPerUnit = Math.min(mapRect.width/vb.w, mapRect.height/vb.h) || 1;
+  const k = 1/pxPerUnit;
+  for (const f of fixed) f.el.setAttribute('transform', `translate(${f.x} ${f.y}) scale(${k})`);
+  placeLabels();
+}
+new ResizeObserver(measure).observe(svg);
+
+function fitBox(b){ // expand bbox to the container aspect
+  const ar = mapRect.width/mapRect.height || 1.6; let {x, y, w, h} = b;
+  if (w/h < ar){ const nw = h*ar; x -= (nw-w)/2; w = nw; } else { const nh = w/ar; y -= (nh-h)/2; h = nh; }
+  return {x, y, w, h};
+}
+function boxOf(pts, padX = .08, padY = .12){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of pts){ x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  const px = Math.max(30, (x1-x0)*padX), py = Math.max(24, (y1-y0)*padY);
+  return {x:x0-px, y:y0-py, w:x1-x0+2*px, h:y1-y0+2*py};
+}
+const regionPts = regs => [AP.TPE.xy, AP.KHH.xy, ...[...ROUTES.values()].filter(r => regs.includes(r.region)).flatMap(r => r.pts)];
+const VIEWS = {all:() => boxOf([...ROUTES.values()].flatMap(r => r.pts), .03, .05), apac:() => boxOf(regionPts(['nea','cn','sea','sa','oc']), .05, .06)};
+for (const r of REG_ORDER) VIEWS[r] = () => boxOf(regionPts([r]), .1, .16);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let fly = null;
+function flyTo(target){
+  target = fitBox(target);
+  if (reduced){ vb = target; applyVB(); return; }
+  fly = {from:{...vb}, to:target, t0:performance.now(), dur:600};
+}
+function stepFly(now){
+  if (!fly) return; let u = Math.min(1, (now - fly.t0)/fly.dur); u = u < .5 ? 4*u*u*u : 1 - Math.pow(-2*u+2, 3)/2;
+  for (const k of ['x','y','w','h']) vb[k] = fly.from[k] + (fly.to[k] - fly.from[k])*u;
+  applyVB(); if (u >= 1) fly = null;
+}
+function setView(v){ state.view = v; markViews(); flyTo(VIEWS[v]()); }
+function markViews(){ document.querySelectorAll('#views button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === state.view)); }
+function clientToSvg(cx, cy){ const r = mapRect, s = pxPerUnit, ox = (r.width - vb.w*s)/2, oy = (r.height - vb.h*s)/2; return [vb.x + (cx - r.left - ox)/s, vb.y + (cy - r.top - oy)/s]; }
+function zoomAt(factor, cx, cy){
+  const nw = Math.min(W*1.3, Math.max(W/60, vb.w/factor)); factor = vb.w/nw;
+  const [px, py] = clientToSvg(cx, cy);
+  vb = {x:px - (px - vb.x)/factor, y:py - (py - vb.y)/factor, w:vb.w/factor, h:vb.h/factor};
+  fly = null; clearView(); applyVB();
+}
+function clearView(){ if (state.view){ state.view = null; markViews(); } }
+svg.addEventListener('wheel', e => { e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.0016), e.clientX, e.clientY); }, {passive:false});
+const ptrs = new Map(); let drag = null;
+svg.addEventListener('pointerdown', e => {
+  svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  drag = {x:e.clientX, y:e.clientY, moved:false, pinch:null};
+  if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; drag.pinch = {d:Math.hypot(a.x-b.x, a.y-b.y)}; drag.moved = true; }
+});
+svg.addEventListener('pointermove', e => {
+  if (!drag || !ptrs.has(e.pointerId)) return;
+  const prev = ptrs.get(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (ptrs.size === 2 && drag.pinch){ const [a, b] = [...ptrs.values()]; const d = Math.hypot(a.x-b.x, a.y-b.y); zoomAt(d/drag.pinch.d, (a.x+b.x)/2, (a.y+b.y)/2); drag.pinch.d = d; return; }
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) > 5){ drag.moved = true; svg.classList.add('dragging'); fly = null; clearView(); }
+  if (drag.moved){ vb.x -= (e.clientX - prev.x)/pxPerUnit; vb.y -= (e.clientY - prev.y)/pxPerUnit; applyVB(); }
+});
+function endPtr(e){
+  if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId);
+  if (drag && !drag.moved && e.type === 'pointerup'){
+    const hit = document.elementFromPoint(e.clientX, e.clientY);
+    const p = hit && hit.closest('[data-k]'), a = hit && hit.closest('[data-ap]');
+    if (p){ const x = INST.get(p.dataset.k); if (x) selectInst(x, false); }
+    else if (a) selectAirport(a.dataset.ap);
+    else if (state.ap) selectAirport(null);
+  }
+  if (!ptrs.size){ drag = null; svg.classList.remove('dragging'); }
+}
+svg.addEventListener('pointerup', endPtr); svg.addEventListener('pointercancel', endPtr);
+$('zIn').onclick = () => { const r = mapRect; zoomAt(1.6, r.left + r.width/2, r.top + r.height/2); };
+$('zOut').onclick = () => { const r = mapRect; zoomAt(1/1.6, r.left + r.width/2, r.top + r.height/2); };
+document.querySelectorAll('#views button').forEach(b => b.onclick = () => setView(b.dataset.v));
+
+/* routes: highlight the selected airport's routes, hide regions switched off in the legend */
+function styleRoutes(){
+  const used = new Set();
+  for (const r of ROUTES.values()){
+    const on = !state.ap || r.a === state.ap || r.b === state.ap, vis = r.segs.some(shown);
+    r.el.classList.toggle('hl', !!state.ap && on);
+    r.el.classList.toggle('dim', !on);
+    r.el.classList.toggle('off', state.hide.has(r.region) || !vis);
+    if (vis){ used.add(r.a); used.add(r.b); }
+  }
+  for (const [c, el] of apEls){
+    const a = AP[c], linked = !state.ap || c === state.ap || TW.has(c) || [...ROUTES.values()].some(r => (r.a === state.ap && r.b === c) || (r.b === state.ap && r.a === c));
+    a.off = !used.has(c);
+    el.g.classList.toggle('sel', c === state.ap);
+    el.g.classList.toggle('off', a.off);
+    el.g.classList.toggle('dim', !linked || (state.hide.has(a.region) && !TW.has(c)));
+  }
+}
+
+/* night side of the Earth, from the subsolar point */
+let nightT = -Infinity;
+function sunPos(t){
+  const d = (t - 946728000000)/864e5, g = (357.529 + 0.98560028*d)*RAD, q = 280.459 + 0.98564736*d;
+  const L = (q + 1.915*Math.sin(g) + 0.020*Math.sin(2*g))*RAD, e = (23.439 - 0.00000036*d)*RAD;
+  const dec = Math.asin(Math.sin(e)*Math.sin(L)), ra = Math.atan2(Math.cos(e)*Math.sin(L), Math.cos(L));
+  const gmst = ((18.697374558 + 24.06570982441908*d) % 24 + 24) % 24;
+  return {dec, lon: ((ra/RAD - gmst*15) % 360 + 540) % 360 - 180};
+}
+function drawNight(){
+  nightT = state.t;
+  let {dec, lon} = sunPos(state.t); if (Math.abs(dec) < .002) dec = .002*Math.sign(dec || 1);
+  const pts = [];
+  for (let rl = -180; rl <= 180; rl += 2){
+    const ha = (rl + P.lon0 - lon)*RAD, lat = Math.atan(-Math.cos(ha)/Math.tan(dec))/RAD;
+    pts.push(projRel(rl, lat));
+  }
+  const edge = dec < 0 ? -H : 2*H;   // northern winter: the dark side wraps over the north pole
+  $('night').setAttribute('d', dPath(pts) + `L${W},${edge}L0,${edge}Z`);
+}
+
+/* planes */
+const planeEls = new Map(); let ACTIVE = [];
+function makePlane(x){
+  const s = x.s, g = svgEl('g', {class:'pl' + (s.kind === 'CS' ? ' cs' : ''), 'data-k':x.key, role:'button', 'aria-label':`${fno(s.no)} ${AP[s.o].name}往${AP[s.d].name}`, style:kc(s)});
+  g.innerHTML = `<circle class="ring" r="15"/><circle class="hit" r="17"/><path class="body" d="${PLANE}"/>`;
+  const lab = svgEl('text', {class:'pll'}, fno(s.no));
+  $('planes').appendChild(g); $('planeLabels').appendChild(lab);
+  return {g, lab};
+}
+function computeActive(t){
+  const out = [];
+  for (const x of WIN){ if (x.t0 > t) break; if (t <= x.t1) out.push(x); }
+  return out;
+}
+function drawPlanes(){
+  const t = state.t, k = 1/pxPerUnit, seen = new Set();
+  ACTIVE = computeActive(t);
+  const size = pxPerUnit < .5 ? .62 : pxPerUnit < 1.2 ? .76 : pxPerUnit < 3 ? .92 : 1.08, showLab = pxPerUnit > 1.5;
+  for (const x of ACTIVE){
+    if (state.hide.has(x.s.region) && state.sel !== x.key) continue;
+    const f = fstate(x, t); if (f.ph !== 'air') continue;
+    let el = planeEls.get(x.key); if (!el){ el = makePlane(x); planeEls.set(x.key, el); }
+    seen.add(x.key);
+    const [px, py] = posAt(x.s, f.s), ang = heading(x.s, f.s), sel = state.sel === x.key;
+    const sc = k*size*(sel ? 1.45 : 1)*(f.ground ? .72 : 1);
+    el.g.setAttribute('transform', `translate(${px.toFixed(2)} ${py.toFixed(2)}) rotate(${ang.toFixed(1)}) scale(${sc.toFixed(4)})`);
+    el.g.classList.toggle('sel', sel); el.g.classList.toggle('gnd', f.ground);
+    el.lab.setAttribute('transform', `translate(${(px + 10*k).toFixed(2)} ${(py - 8*k).toFixed(2)}) scale(${k.toFixed(4)})`);
+    el.lab.style.display = ((showLab && !f.ground) || sel) ? '' : 'none';
+  }
+  for (const [key, el] of planeEls) if (!seen.has(key)){ el.g.remove(); el.lab.remove(); planeEls.delete(key); }
+  const se = state.sel && planeEls.get(state.sel);   // selected plane drawn on top
+  if (se && se.g.nextSibling){ $('planes').appendChild(se.g); $('planeLabels').appendChild(se.lab); }
+}
+
+/* selected flight: flown part solid, remainder dashed, other legs dotted */
+let selKey = '';
+function drawSel(){
+  const s = state.selSeg, g = $('selRoute');
+  if (!s){ if (selKey){ g.innerHTML = ''; selKey = ''; } return; }
+  const x = state.sel ? INST.get(state.sel) : null, fr = fracOf(x, state.t), key = s.id + (x ? x.key : '') + fr.toFixed(3);
+  if (key === selKey) return; selKey = key;
+  let h = s.legs.filter(l => l !== s).map(l => `<path class="sr-leg" d="${dPath(gcPts(l.A, l.B, l.om))}"/>`).join('');
+  if (fr < 1) h += `<path class="sr-rest" d="${dPath(gcPts(s.A, s.B, s.om, fr, 1))}"/>`;
+  if (fr > 0) h += `<path class="sr-done" d="${dPath(gcPts(s.A, s.B, s.om, 0, fr))}"/>`;
+  g.innerHTML = h;
+}
+
+/* ── selection ─────────────────────────────── */
+function nextDate(s){   // the flight in the air now, else the next departure within 90 days
+  const t = state.t;
+  for (const x of WIN) if (x.s === s && x.t0 <= t && t <= x.t1) return x.D;
+  const p = tpParts(t), D0 = dateAdd({y:p.y, mo:p.mo, d:p.d}, -1);
+  for (let n = 0; n < 175; n++){ const D = dateAdd(D0, n); if (operates(s, D) && inst(s, D).t1 >= t) return D; }
+  return null;
+}
+function selectSeg(s, flyMap = true){
+  showKind(s);
+  const D = nextDate(s);
+  if (D) selectInst(inst(s, D), flyMap);
+  else { state.selSeg = s; state.sel = null; afterSelect(flyMap); }
+}
+function selectInst(x, flyMap){ showKind(x.s); state.selSeg = x.s; state.sel = x.key; afterSelect(flyMap); }
+function showKind(s){ if (!shown(s)){ kinds.add(s.kind); kindsChanged(); } }   // looking up a code-share turns the category on
+function kindsChanged(){ winKey = ''; weekKey = ''; buildWindow(state.D); styleRoutes(); placeLabels(); renderPanels(true); }
+function afterSelect(flyMap){
+  if (flyMap && state.selSeg){ const s = state.selSeg; flyTo(boxOf(s.legs.flatMap(l => gcPts(l.A, l.B, l.om)), .25, .3)); clearView(); }
+  placeLabels(); renderPanels(true);
+}
+function clearSel(){ state.sel = null; state.selSeg = null; placeLabels(); renderPanels(true); }
+function selectAirport(code){
+  state.ap = code; styleRoutes(); placeLabels();
+  if (code && !TW.has(code)){
+    flyTo(boxOf([AP.TPE.xy, ...[...ROUTES.values()].filter(r => r.a === code || r.b === code).flatMap(r => r.pts)], .3, .35)); clearView();
+    state.ttQ = code; $('ttQ').value = code; setTab('tt');
+  } else if (code){ state.port = code; setTab('dep'); }
+  renderPanels(true);
+}
+
+/* ── header controls ─────────────────────────────── */
+$('datePick').min = SEASON0; $('datePick').max = SEASON1;
+$('datePick').onchange = e => {
+  const v = e.target.value; if (!v) return;
+  const p = tpParts(state.t); enterSim(); state.t = tpMidnight(parseKey(v)) + (p.h*60 + p.mi)*6e4 + p.s*1e3; syncControls();
+};
+$('liveBtn').onclick = goLive;
+$('playBtn').onclick = () => { if (state.mode === 'live') enterSim(false); else state.playing = !state.playing; syncControls(); };
+$('speedSel').onchange = e => { state.speed = +e.target.value; if (state.mode === 'live') enterSim(true); else state.playing = true; syncControls(); };
+$('slider').oninput = e => { enterSim(state.mode === 'sim' ? state.playing : false); state.t = tpMidnight(state.D) + (+e.target.value)*6e4; };
+function syncControls(){
+  const live = state.mode === 'live', playing = live || state.playing;
+  $('liveBtn').setAttribute('aria-pressed', live);
+  $('playBtn').textContent = playing ? '❚❚' : '▶'; $('playBtn').setAttribute('aria-label', playing ? '暫停' : '播放');
+  const pill = $('modePill'); pill.className = 'pill ' + (live ? 'live' : 'sim');
+  pill.lastElementChild.textContent = live ? '即時' : (state.playing ? `模擬 ${state.speed}×` : '模擬 · 暫停');
+}
+function drawClock(){
+  const p = tpParts(state.t), txt = `${pad(p.h)}:${pad(p.mi)}:${pad(p.s)}`;
+  if ($('clock').textContent !== txt) $('clock').textContent = txt;
+  const when = `${p.y}/${p.mo}/${p.d}（${DAY[p.wd]}）臺北`;
+  if ($('whenText').textContent !== when) $('whenText').textContent = when;
+  const sl = $('slider'), m = p.h*60 + p.mi;
+  if (document.activeElement !== sl || state.mode === 'live') sl.value = m;
+  const o = `${pad(p.h)}:${pad(p.mi)}`; if ($('sliderOut').textContent !== o) $('sliderOut').textContent = o;
+}
+$('findForm').onsubmit = e => {
+  e.preventDefault();
+  const q = $('findQ').value.trim(); $('findMsg').textContent = ''; if (!q) return;
+  const m = q.toUpperCase().replace(/\s+/g, '').match(/^(BR|B7|CI|AE|JX)?0*(\d{1,4})$/);
+  if (m){
+    const codes = (m[1] ? [m[1]] : ['BR', 'B7', 'CI', 'AE', 'JX']).map(p => p + m[2]).filter(c => BYNO.has(c));
+    if (!codes.length){ $('findMsg').textContent = `本班表沒有 ${(m[1] || '') + m[2]}`; return; }
+    if (codes.length > 1){ state.ttQ = m[2]; $('ttQ').value = m[2]; $('ttScope').value = 'season'; state.ttScope = 'season'; setTab('tt'); return; }
+    const legs = BYNO.get(codes[0]);
+    // several lines: the one in the air now, else the one with the next departure
+    const t = state.t, cand = legs.map(s => ({s, D:nextDate(s)})).map(c => ({...c, x:c.D ? inst(c.s, c.D) : null}));
+    const best = cand.find(c => c.x && c.x.t0 <= t && t <= c.x.t1) || cand.filter(c => c.x).sort((a, b) => a.x.t0 - b.x.t0)[0] || cand[0];
+    if (best.x) selectInst(best.x, true); else selectSeg(best.s, true);
+    return;
+  }
+  state.ttQ = q; $('ttQ').value = q; setTab('tt');
+  if (!ttRows().length) $('findMsg').textContent = '找不到符合的航點或航班';
+};
+
+/* ── summary card + legend ─────────────────────────────── */
+const kindMark = c => `<i style="background:var(--k-${c})"></i>`;
+function airborne(){ return ACTIVE.filter(x => fstate(x, state.t).ph === 'air'); }
+function renderSummary(){
+  const D = state.D, air = airborne(), k = dkey(D);
+  $('sumTitle').textContent = `${fmtD(D)}航班概況`;
+  $('kDep').textContent = DEPS.length; $('kArr').textContent = ARRS.length; $('kAir').textContent = air.length; $('kDest').textContent = FARS.length;
+  const rows = REG_ORDER.map(r => ({r, n:DEPS.filter(x => x.s.region === r).length, a:air.filter(x => x.s.region === r).length}));
+  const max = Math.max(...rows.map(o => o.n), 1);
+  $('regs').innerHTML = rows.map(o => `<button class="rg" data-r="${o.r}" aria-pressed="${state.view === o.r}"><i style="background:var(--r-${o.r})"></i><span>${REG[o.r]}</span>` +
+    `<span class="bar"><b style="width:${(o.n/max*100).toFixed(1)}%;background:var(--r-${o.r})"></b></span><span class="n">${o.n}</span><small>${o.a} 架</small></button>`).join('');
+  const inSeason = k >= SEASON0 && k <= SEASON1;
+  const today = SEGS.filter(s => s.dir === 'out' && operates(s, D));
+  $('kinds').innerHTML = Object.entries(KIND).map(([c, n]) => `<button data-kind="${c}" aria-pressed="${kinds.has(c)}" title="顯示／隱藏${n}航班">${kindMark(c)}${n}<span>${today.filter(s => s.kind === c).length}</span></button>`).join('');
+  $('sumNote').innerHTML = (inSeason ? '' : `<span class="warn">所選日期不在冬季班表期間（${SEASON0.replace(/-/g,'/')}–${SEASON1.replace(/-/g,'/')}），沒有班表可推算。</span><br>`) +
+    `這一週自臺灣出發 <b>${WK_OUT}</b> 班，飛往 ${FARS.length} 個國際航點。按鈕上的數字是本日出發班次，點選可顯示或隱藏該類航班。`;
+}
+document.addEventListener('click', e => {
+  const rg = e.target.closest('.rg'); if (rg) setView(rg.dataset.r);
+  const kd = e.target.closest('[data-kind]');
+  if (kd){ const c = kd.dataset.kind; if (kinds.has(c)) kinds.delete(c); else kinds.add(c); if (state.selSeg && !shown(state.selSeg)) { state.sel = null; state.selSeg = null; } kindsChanged(); return; }
+  const lg = e.target.closest('.lg');
+  if (lg){ const r = lg.dataset.r; if (state.hide.has(r)) state.hide.delete(r); else state.hide.add(r); styleRoutes(); renderPanels(true); }
+});
+function renderLegend(){
+  const air = airborne();
+  $('legend').innerHTML = `<div class="lh"><span>航線區域</span><span>空中</span></div>` + REG_ORDER.map(r =>
+    `<button class="lg" data-r="${r}" aria-pressed="${!state.hide.has(r)}" title="顯示／隱藏${REG[r]}"><i class="sw" style="background:var(--r-${r})"></i>${REG[r]}<b>${air.filter(x => x.s.region === r).length}</b></button>`).join('') +
+    `<small>飛機顏色＝航空公司 · 陰影為夜間</small>`;
+}
+
+/* ── tabs ─────────────────────────────── */
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function setTab(t){
+  state.tab = t;
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ['dep','arr','air','tt','dest','audit'].forEach(k => $('pane-' + k).hidden = k !== t);
+  renderPanels(true);
+}
+document.addEventListener('click', e => {
+  const k = e.target.closest('.rail [data-k]'); if (k){ const x = INST.get(k.dataset.k); if (x) selectInst(x, true); return; }
+  const sg = e.target.closest('[data-seg]'); if (sg){ selectSeg(SEGS[+sg.dataset.seg], true); return; }
+  const ap = e.target.closest('.rail [data-ap]'); if (ap){ selectAirport(ap.dataset.ap); return; }
+  const pt = e.target.closest('[data-port]'); if (pt){ state.port = pt.dataset.port; renderPanels(true); return; }
+  if (e.target.closest('[data-past]')){ state.showPast = !state.showPast; renderPanels(true); return; }
+  const act = e.target.closest('[data-act]');
+  if (act){
+    if (act.dataset.act === 'close') clearSel();
+    if (act.dataset.act === 'locate' && state.selSeg){ const s = state.selSeg; flyTo(boxOf(s.legs.flatMap(l => gcPts(l.A, l.B, l.om)), .25, .3)); clearView(); }
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.selSeg) clearSel(); });
+
+/* departure / arrival boards */
+const PORTS = [['all','全部'], ['TPE','桃園'], ['TSA','松山'], ['RMQ','清泉崗'], ['KHH','高雄']];
+function boardStatus(kind, x, t){
+  const f = fstate(x, t);
+  if (f.ph === 'pre'){ const m = -f.m; return kind === 'dep' && m <= 60 ? ['即將起飛', 'hot', `${Math.ceil(m)} 分後`] : ['預定', '', '']; }
+  if (f.ph === 'post') return ['已抵達', 'done', kind === 'dep' ? `${AP[x.s.d].city} ${x.s.arr}` : ''];
+  if (kind === 'dep') return f.taxiOut ? ['已出發', 'air', '滑行中'] : ['已起飛', 'air', `剩 ${fmtDurS(x.blk - f.m)}`];
+  const rem = x.blk - f.m;
+  return rem <= 30 ? ['即將抵達', 'hot', `${Math.max(1, Math.ceil(rem))} 分後`] : ['飛行中', 'air', `剩 ${fmtDurS(rem)}`];
+}
+function renderBoard(kind){
+  const t = state.t, all = kind === 'dep' ? DEPS : ARRS, end = kind === 'dep' ? 'o' : 'd';
+  const list = all.filter(x => state.port === 'all' || x.s[end] === state.port);
+  const isPast = x => (kind === 'dep' ? x.t0 : x.t1) < t - 30*6e4;
+  const past = list.filter(isPast).length, shown = state.showPast ? list : list.filter(x => !isPast(x));
+  const chips = `<div class="chips" role="group" aria-label="臺灣機場">${PORTS.map(([c, n]) => `<button data-port="${c}" aria-pressed="${state.port === c}">${n}<span>${all.filter(x => c === 'all' || x.s[end] === c).length}</span></button>`).join('')}</div>`;
+  const rows = shown.map(x => {
+    const s = x.s, [st, cls, sub] = boardStatus(kind, x, t);
+    const onward = s.legs.filter((l, n) => l === s || legInst(x, l));   // CI53 goes on to Auckland only on some days
+    const places = kind === 'dep' ? onward.slice(onward.indexOf(s)).map(l => AP[l.d]) : onward.slice(0, onward.indexOf(s) + 1).map(l => AP[l.o]);
+    const oper = s.kind === 'CS' ? ` · ${operName(s)} 執飛` : ` · ${operName(s)}`;
+    const port = state.port === 'all' && !(kind === 'dep' ? s.o === 'TPE' : s.d === 'TPE') ? `・${AP[kind === 'dep' ? s.o : s.d].short}` : '';
+    return `<button class="brow${isPast(x) ? ' past' : ''}${state.sel === x.key ? ' sel' : ''}" data-k="${x.key}" style="${kc(s)}">` +
+      `<span class="bt">${kind === 'dep' ? s.dep : s.arr}</span><span class="bn"><i></i>${fno(s.no)}</span>` +
+      `<span class="bd"><b>${places.map(a => a.name).join('・')}</b><small>${places.map(a => a.en).join(' / ')}${port ? ' · ' + (kind === 'dep' ? '自' : '抵') + port.slice(1) : ''}${oper}</small></span>` +
+      `<span class="bs ${cls}"><b>${st}</b>${sub ? `<small>${sub}</small>` : ''}</span></button>`;
+  }).join('');
+  const label = kind === 'dep' ? ['出發', 'Departures', '起飛', '目的地'] : ['抵達', 'Arrivals', '抵達', '出發地'];
+  return chips + `<div class="board"><div class="board-head"><div><b>${label[0]}</b><span>${label[1]}</span></div><time class="num">${tpHM(t)}</time></div>` +
+    `<div class="bcols"><span>${label[2]}</span><span>航班</span><span>${label[3]}</span><span>狀態</span></div>` +
+    (rows || `<div class="bnone">${list.length ? `本日${label[0]}航班皆已${kind === 'dep' ? '起飛' : '抵達'}` : '本日無航班'}</div>`) +
+    `<div class="board-foot"><span>當地表定時間 · 狀態依時刻表推算</span>${past ? `<button data-past="1">${state.showPast ? '隱藏' : '顯示'}已${kind === 'dep' ? '起飛' : '抵達'} ${past} 班</button>` : ''}</div></div>`;
+}
+
+/* in the air */
+function renderAir(){
+  const t = state.t, air = airborne().filter(x => !state.hide.has(x.s.region)).sort((a, b) => a.t1 - b.t1);
+  if (!air.length) return `<div class="empty">目前沒有航班在空中。</div>`;
+  const row = x => {
+    const s = x.s, f = fstate(x, t), O = AP[s.o], D = AP[s.d];
+    return `<li><button class="runrow${state.sel === x.key ? ' sel' : ''}" data-k="${x.key}" style="${kc(s)}"><span class="fno">${fno(s.no)}</span>` +
+      `<span class="rm"><b>${O.name} → ${D.name}</b><small>${s.o}–${s.d} · ${acName(s.ac)}${f.ground ? (f.taxiOut ? ' · 滑行中' : ' · 已降落') : ''}</small></span>` +
+      `<span class="rn"><b>${fmtDurS(x.blk - f.m)}</b>剩餘</span><span class="pg"><i style="width:${(f.s*100).toFixed(1)}%"></i></span></button></li>`;
+  };
+  const out = air.filter(x => x.s.out), back = air.filter(x => !x.s.out);
+  return `<div class="subhead"><span>從臺灣出發</span><b>${out.length} 架</b></div><ul class="runlist">${out.map(row).join('') || '<li class="empty">—</li>'}</ul>` +
+         `<div class="subhead"><span>飛往臺灣</span><b>${back.length} 架</b></div><ul class="runlist">${back.map(row).join('') || '<li class="empty">—</li>'}</ul>`;
+}
+
+/* timetable */
+$('ttReg').innerHTML = `<option value="all">全部區域</option>` + REG_ORDER.map(r => `<option value="${r}">${REG[r]}</option>`).join('');
+$('ttReg').onchange = e => { state.ttReg = e.target.value; renderPanels(true); };
+$('ttQ').oninput = e => { state.ttQ = e.target.value.trim(); renderPanels(true); };
+$('ttScope').onchange = e => { state.ttScope = e.target.value; renderPanels(true); };
+const segText = s => [s.no, s.no.slice(2), s.op || '', s.alt || '', s.o, s.d, AP[s.o].name, AP[s.d].name, AP[s.o].en, AP[s.d].en, AP[s.o].country, AP[s.d].country].join(' ').toLowerCase();
+function ttRows(){
+  const q = state.ttQ.toLowerCase().replace(/^(br|b7|ci|ae|jx)\s*/, '$1');
+  const inScope = s => state.ttScope === 'season' || (state.ttScope === 'day' ? operates(s, state.D) : s.wk > 0);
+  // an airport code matches that airport only: OKA is Okinawa, not the "oka" in Fukuoka
+  const code = AP[state.ttQ.toUpperCase()] ? state.ttQ.toUpperCase() : null;
+  const hit = s => !q || (code ? s.o === code || s.d === code : segText(s).includes(q));
+  return SEGS.filter(s => shown(s) && (state.ttReg === 'all' || s.region === state.ttReg) && hit(s) && inScope(s));
+}
+function renderTT(){
+  const rows = ttRows(), run = new Set(airborne().map(x => x.s.id)), groups = new Map();
+  for (const s of rows){ if (!groups.has(s.far)) groups.set(s.far, []); groups.get(s.far).push(s); }
+  const order = [...groups.keys()].sort((a, b) => REG_ORDER.indexOf(AP[a].region) - REG_ORDER.indexOf(AP[b].region) || segKm(a) - segKm(b));
+  let h = `<thead><tr><th>航班</th><th>航段</th><th>起飛</th><th>抵達</th><th>飛行</th><th>班期</th><th>機型</th></tr></thead><tbody>`;
+  for (const c of order){
+    const a = AP[c], list = groups.get(c).sort((x, y) => (y.out - x.out) || x.depM - y.depM);   // outbound first
+    h += `<tr class="g" data-ap="${c}" style="${rc(a.region)}"><td colspan="7"><i></i>${a.name} ${c}<small>${a.country} · 每週 ${a.wkOut} 班 · ${num(segKmTW(c))} 公里</small></td></tr>`;
+    for (const s of list){
+      const cls = ['r', run.has(s.id) ? 'run' : '', operates(s, state.D) ? '' : 'off', state.selSeg === s ? 'sel' : ''].join(' ');
+      const tags = (s.kind === 'CS' ? `<span class="tag">${s.op || '共掛'}</span>` : `<span class="tag" style="color:var(--k-${s.kind})">${KIND[s.kind]}</span>`) + (s.ex === 'chr' ? `<span class="tag ex" title="包機，官網時刻表查不到">包機</span>` : s.ex && s.ex !== 'off' ? `<span class="tag ex" title="不在官方時刻表上，見查核分頁">表外</span>` : '');
+      h += `<tr class="${cls}" data-seg="${s.i}" style="${rc(s.region)}"><td class="no">${fno(s.no)}${tags}</td><td class="rte">${s.o}–${s.d}</td><td>${s.dep}</td>` +
+        `<td>${s.arr}${s.plus ? `<span class="ps">${plusTxt(s.plus)}</span>` : ''}</td><td>${fmtDurS(s.blk)}</td><td class="dy">${daysText(s)}</td><td>${s.ac}</td></tr>`;
+    }
+  }
+  $('tt').innerHTML = h + '</tbody>';
+  $('ttCount').textContent = rows.length ? `${groups.size} 個航點、${rows.length} 行 · 時間為當地時間，+1／+2 為隔日、第三日抵達 · 灰色為${fmtD(state.D)}不飛 · 同一航班依星期或期間有不同時刻時分行列出` : '沒有符合的航班。';
+}
+const segKm = c => Math.min(...SEGS.filter(s => s.far === c).map(s => s.km + (s.dir === 'via' ? 1e4 : 0)));
+const segKmTW = c => { const s = SEGS.find(s => s.far === c && s.dir !== 'via'); return s ? s.km : SEGS.find(s => s.far === c).km; };
+
+/* destinations */
+function renderDest(){
+  const ports = ['TPE','TSA','RMQ','KHH'].map(c => `<div><b>${AP[c].wkOut}</b><span>${AP[c].short} ${c}</span></div>`).join('');
+  let h = `<div class="ports">${ports}</div><p class="note" style="margin:0 4px 8px">各機場這一週的出發班次與航點，依上方選擇的航班類別計算。</p>`;
+  for (const r of REG_ORDER){
+    const list = FARS.filter(a => a.region === r).sort((a, b) => b.wkOut - a.wkOut || segKm(a.code) - segKm(b.code)); if (!list.length) continue;
+    h += `<div class="dgroup" style="${rc(r)}"><h4><i></i>${REG[r]}<small>${list.length} 個航點 · 每週 ${list.reduce((n, a) => n + a.wkOut, 0)} 班</small></h4>`;
+    for (const a of list){
+      const segs = SEGS.filter(s => s.far === a.code && s.out && shown(s) && s.wk), blk = Math.min(...segs.map(s => s.blk + (s.leg ? s.legs[0].blk + 90 : 0)));
+      const via = segs.every(s => s.leg > 0) ? ` · 經${AP[segs[0].o].city}` : '';
+      const from = [...new Set(segs.map(s => s.legs[0].o))].map(c => AP[c].short).join('、');
+      h += `<button class="dest${state.ap === a.code ? ' sel' : ''}" data-ap="${a.code}"><span class="dn"><b>${a.name}<span>${a.code}</span></b><small>${a.en} · ${a.country} · 自${from}${via}</small></span>` +
+        `<span class="df">${a.wkOut}<small>班/週</small></span><span class="dt">${fmtDurS(blk)}</span></button>`;
+    }
+    h += '</div>';
+  }
+  return h;
+}
+
+/* selected flight detail */
+function renderDetail(){
+  const box = $('detail'), s = state.selSeg;
+  if (!s){ box.hidden = true; return; }
+  box.hidden = false;
+  const x = state.sel ? INST.get(state.sel) : null, t = state.t, f = x ? fstate(x, t) : null, O = AP[s.o], D = AP[s.d];
+  const fr = fracOf(x, t), pathSvg = `<svg viewBox="-12 -12 24 24" aria-hidden="true"><path d="${PLANE}"/></svg>`;
+  let h = `<div class="detail-head"><span class="fno big" style="${kc(s)}">${fno(s.no)}</span><div class="grow"><h3>${O.name} → ${D.name}</h3>` +
+    `<p>${operName(s)}${s.kind === 'CS' ? ' 執飛' : ''} · ${acName(s.ac)} · ${num(s.km)} 公里</p>${s.ex === 'chr' ? '<p class="note" style="margin:2px 0 0"><b>包機</b>，官網時刻表查不到，日期與時刻可能變動。</p>' : s.ex && s.ex !== 'off' ? '<p class="note" style="margin:2px 0 0"><b>這個日期不在官方時刻表上</b>，是機場端或 TDX 公布的航班。</p>' : ''}</div><div class="detail-actions">` +
+    `<button class="btn icon" data-act="locate" title="在地圖上顯示" aria-label="在地圖上顯示">⌖</button><button class="btn icon" data-act="close" aria-label="關閉">✕</button></div></div>`;
+  if (x){
+    const Da = dateAdd(x.D, s.plus), tw0 = TW.has(s.o) ? '' : `<br>臺北 ${fmtD(tpParts(x.t0))} ${tpHM(x.t0)}`, tw1 = TW.has(s.d) ? '' : `<br>臺北 ${fmtD(tpParts(x.t1))} ${tpHM(x.t1)}`;
+    h += `<div class="legline" style="${kc(s)}"><div class="end"><span class="code">${s.o}</span><span class="city">${O.name}</span><span class="tm">${s.dep}</span><small>${fmtD(x.D)}起飛${tw0}</small></div>` +
+      `<div class="mid"><div class="track"><i style="width:${(fr*100).toFixed(1)}%"></i><span style="position:absolute;left:${(fr*100).toFixed(1)}%;top:0">${pathSvg}</span></div><span>${fmtDur(x.blk)}</span></div>` +
+      `<div class="end r"><span class="code">${s.d}</span><span class="city">${D.name}</span><span class="tm">${s.arr}</span><small>${fmtD(Da)}抵達${tw1}</small></div></div>`;
+    let st;
+    if (f.ph === 'pre'){ const m = -f.m; st = `<b>預定</b><span>${m < 1440 ? `距起飛 ${fmtDur(m)}` : `${fmtD(x.D)} 出發`}</span>`; }
+    else if (f.ph === 'post') st = `<b>已抵達</b><span>抵達後 ${fmtDur(f.m - x.blk)}</span>`;
+    else if (f.ground) st = f.taxiOut ? `<b>已出發</b><span>滑行中 · 約 ${Math.ceil(TAXI_OUT - f.m)} 分後起飛</span>` : `<b>已降落</b><span>滑行至停機位</span>`;
+    else st = `<b>飛行中</b><span>已飛 ${fmtDur(f.m)} · 剩 ${fmtDur(x.blk - f.m)}</span><span class="spd">${num(f.v)}<small>km/h</small></span>`;
+    h += `<div class="status">${st}</div>`;
+    if (f.ph === 'air' && !f.ground)
+      h += `<div class="facts"><div><b>${num(f.alt)} 呎</b><span>推算高度</span></div><div><b>${num(s.km*f.s)} km</b><span>已飛距離</span></div><div><b>${num(s.km*(1-f.s))} km</b><span>剩餘距離</span></div></div>`;
+  } else {
+    h += `<div class="status" style="margin-top:12px"><b>${s.dep} → ${s.arr}${s.plus ? plusTxt(s.plus) : ''}</b><span>${fmtDurS(s.blk)} · ${daysText(s)} · 本季已無航班</span></div>`;
+  }
+  if (s.legs.length > 1){
+    h += `<ul class="legs"><h4>${fno(s.no)} 經停${AP[s.legs[0].d].city}</h4>` + s.legs.map(l => {
+      const lx = x ? (l === s ? x : legInst(x, l)) : null, lf = lx && fstate(lx, t), v = lx ? lx.s : l;
+      const ls = !lf ? (x ? '本班不飛' : daysText(l)) : lf.ph === 'pre' ? '預定' : lf.ph === 'post' ? '已抵達' : '飛行中';
+      return `<li class="${l === s ? 'cur' : ''}" data-seg="${v.i}" style="cursor:pointer"><span>${v.o} ${v.dep} → ${v.d} ${v.arr}${v.plus ? plusTxt(v.plus) : ''} · ${fmtDurS(v.blk)}</span><span>${ls}</span></li>`;
+    }).join('') + '</ul>';
+  }
+  {
+    // this flight's week: a flight timed differently by weekday or period has one line per timing
+    const week = weekDates(x ? x.D : state.D), sib = BYNO.get(s.no).filter(v => v.o === s.o && v.d === s.d && week.some(d => operates(v, d)));
+    const flies = week.map(d => sib.some(v => operates(v, d))), wk = flies.filter(Boolean).length, cw = x ? wdOf(x.D) : -1;
+    h += `<div class="dayrow">當週 <span class="dd">${DAY.map((d, i) => `<i class="${flies[i] ? 'on' : ''}${i === cw ? ' cur' : ''}">${d}</i>`).join('')}</span> <span>${wk === 7 ? '每日' : `${wk} 班`}</span></div>`;
+    if (sib.length > 1) h += `<p class="note">依星期有不同時刻：${sib.map(v => `週${week.map((d, i) => operates(v, d) ? DAY[i] : '').join('')} ${v.dep} 起飛`).join('、')}。</p>`;
+  }
+  h += `<p class="fleet">時間為當地表定時間。位置沿大圓航線，依表定時間扣除約 ${TAXI_OUT} 分鐘滑行出發、${TAXI_IN} 分鐘滑行抵達推算；速度、高度為估算值，不含延誤等即時資訊。</p>`;
+  box.innerHTML = h;
+}
+// the instance of another leg of the same flight number on the same trip
+function legInst(x, l){
+  const s = x.s; let D = x.D;
+  if (l.leg > s.leg){ for (let k = s.leg; k < l.leg; k++){ const a = s.legs[k], b = s.legs[k+1]; D = dateAdd(D, a.plus + (b.depM < a.arrM ? 1 : 0)); } }
+  else { for (let k = s.leg; k > l.leg; k--){ const a = s.legs[k-1], b = s.legs[k]; D = dateAdd(D, -(a.plus + (b.depM < a.arrM ? 1 : 0))); } }
+  const v = BYNO.get(l.no).find(v => v.o === l.o && v.d === l.d && operates(v, D));
+  return v ? inst(v, D) : null;
+}
+
+/* audit */
+function renderAudit(){
+  const A = AUDIT, ports = ['TPE','TSA','RMQ','KHH'], keys = Object.keys(KIND);
+  const name = c => AP[c] ? AP[c].name : c;
+  const wk = (c, k) => SEGS.filter(s => s.o === c && s.kind === k).reduce((n, s) => n + s.wk, 0);
+  const dest = (c, k) => [...new Set(SEGS.filter(s => s.o === c && s.kind === k && s.wk).map(s => s.d))].map(d => AP[d])
+    .sort((x, y) => REG_ORDER.indexOf(x.region) - REG_ORDER.indexOf(y.region) || dot(y.v, AP.TPE.v) - dot(x.v, AP.TPE.v));
+  const chips = list => `<div class="dests">${list.map(a => `<button data-ap="${a.code}" title="${a.code}">${a.name}</button>`).join('')}</div>`;
+  const apRow = c => `<tr><td style="white-space:nowrap"><b>${AP[c].short}</b><br><small>${c}</small></td>${keys.map(k => `<td class="n">${wk(c, k)}</td>`).join('')}</tr>` +
+    `<tr><td colspan="${keys.length + 1}">${keys.map(k => dest(c, k).length ? `<small>${KIND[k]}</small>${chips(dest(c, k))}` : '').join('') || '<small>本週沒有航班</small>'}</td></tr>`;
+  const cover = (A.coverage || []).map(r => `<tr><td>${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.name}</a>` : r.name}<br><small>${r.what}</small></td><td class="n">${r.compared}</td><td class="n" style="color:var(--${r.missing ? 'accent' : 'live'})">${r.missing}</td><td class="n" style="color:var(--${r.extra ? 'accent' : 'live'})">${r.extra}</td></tr>`).join('');
+  const added = (A.added || []).map(r => `<tr><td class="no">${r.no}</td><td>${r.route}</td><td>${r.when}<br><small>${r.src}</small></td></tr>`).join('');
+  return `<div class="verdict">${A.verdict}<br><small>查核於 ${A.checked.replace(/-/g,'/')}。</small></div>` +
+    `<h4>四座機場<small>這一週出發班次，依所選日期計算</small></h4><div class="awrap"><table class="atab"><thead><tr><th>機場</th>${keys.map(k => `<th class="n">${KIND[k]}</th>`).join('')}</tr></thead><tbody>${ports.map(apRow).join('')}</tbody></table></div>` +
+    (added ? `<h4>這次查核補入<small>${(A.added || []).length} 組</small></h4><div class="awrap"><table class="atab"><thead><tr><th>航班</th><th>航段</th><th>日期／來源</th></tr></thead><tbody>${added}</tbody></table></div>` : '') +
+    (cover ? `<h4>查核範圍<small>未收錄＝來源有、本系統沒有；多列＝本系統有、來源沒有</small></h4><div class="awrap"><table class="atab"><thead><tr><th>來源</th><th class="n">比對航班日</th><th class="n">未收錄</th><th class="n">多列</th></tr></thead><tbody>${cover}</tbody></table></div>` : '') +
+    (A.notes || []).map(t => `<p style="margin-top:8px">${t}</p>`).join('') +
+    ((A.absent || []).length ? `<h4>查過但本季沒有</h4>${A.absent.map(t => `<p>${t}</p>`).join('')}` : '') +
+    ((A.limits || []).length ? `<h4>限制</h4>${A.limits.map(t => `<p>${t}</p>`).join('')}` : '') +
+    ((A.sites || []).length ? `<h4>單一航空的完整查核</h4>${A.sites.map(s => `<p><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></p>`).join('')}` : '') +
+    `<h4>來源</h4>${A.sources.map(s => `<p><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>：${s.what}</p>`).join('')}`;
+}
+
+/* ── panels ─────────────────────────────── */
+let panelKey = '';
+function renderPanels(force){
+  if (!state.D) return;
+  const minute = Math.floor(state.t/6e4);
+  const key = [state.tab, minute, winKey, state.port, state.showPast, state.ttReg, state.ttQ, state.ttScope, state.sel, state.selSeg && state.selSeg.id, [...state.hide].join(), state.ap, state.view].join('|');
+  if (!force && key === panelKey) return; panelKey = key;
+  ACTIVE = computeActive(state.t);
+  renderSummary(); renderLegend(); renderDetail();
+  $('tnDep').textContent = DEPS.length; $('tnArr').textContent = ARRS.length; $('tnAir').textContent = airborne().length;
+  if (state.tab === 'dep') $('pane-dep').innerHTML = renderBoard('dep');
+  if (state.tab === 'arr') $('pane-arr').innerHTML = renderBoard('arr');
+  if (state.tab === 'air') $('pane-air').innerHTML = renderAir();
+  if (state.tab === 'tt') renderTT();
+  if (state.tab === 'dest') $('pane-dest').innerHTML = renderDest();
+  if (state.tab === 'audit') $('pane-audit').innerHTML = renderAudit();
+}
+
+/* ── main loop ─────────────────────────────── */
+let last = performance.now(), lastPanel = 0;
+function frame(now){
+  const dt = Math.min(1000, now - last); last = now;
+  if (state.mode === 'live') state.t = Date.now(); else if (state.playing) state.t += dt*state.speed;
+  syncDate(); stepFly(now); drawClock(); drawPlanes(); drawSel();
+  if (Math.abs(state.t - nightT) > 3*6e4) drawNight();
+  if (now - lastPanel > 400){ lastPanel = now; renderPanels(); }
+  requestAnimationFrame(frame);
+}
+measure();
+state.view = mapRect.width/mapRect.height < 1 ? 'apac' : 'all';   // portrait phones start on Asia-Pacific
+vb = fitBox(VIEWS[state.view]()); applyVB(); markViews();
+styleRoutes(); syncControls(); syncDate(); drawNight();
+requestAnimationFrame(frame);
+})();
+</script>
