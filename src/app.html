@@ -310,6 +310,9 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax
 .stops li.next .pin i{border-color:var(--accent)}
 .stops small.ar{font:500 12px var(--font-display);color:var(--muted)}
 .fleet{margin:12px 0 0;font-size:12px;color:var(--muted);line-height:1.65;border-top:1px solid var(--rule);padding-top:10px}
+.tg{display:inline-block;margin-left:5px;padding:0 5px;border-radius:4px;font:700 11px/1.5 var(--font-body);background:var(--hsr-soft);color:var(--hsr-ink);vertical-align:1px}
+.trnote{margin:10px 0 0;padding:7px 10px;border-radius:8px;background:var(--hsr-soft);font-size:12.5px;line-height:1.55}
+.trnote a{color:inherit}
 .fleet b{color:var(--ink);font-weight:500}
 
 /* tabs */
@@ -565,7 +568,7 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax
         <select id="speedSel" class="btn" aria-label="模擬速度">
           <option value="1">1×</option><option value="10">10×</option><option value="60" selected>60×</option><option value="300">300×</option><option value="900">900×</option>
         </select>
-        <input type="range" id="slider" min="240" max="1439" step="1" value="480" aria-label="模擬時間">
+        <input type="range" id="slider" min="240" max="1580" step="1" value="480" aria-label="模擬時間">
         <output id="sliderOut" for="slider">08:00</output>
       </div>
     </div>
@@ -722,7 +725,7 @@ main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax
       </section>
 
       <p class="foot">
-        資料來源：航班為<a href="air.html">航班世界地圖</a>所用的長榮、華航、星宇 2026/27 冬季班表（各航空公司官網時刻表與機場公告）；台灣高鐵〈2026/2/2 起適用時刻表〉與〈2026 選舉疏運時刻表〉（<a href="https://www.thsrc.com.tw/ArticleContent/a3b630bb-1066-4352-a1ef-58c7b4e8ef7c" target="_blank" rel="noopener">thsrc.com.tw</a>）；臺鐵公司開放資料〈鐵路時刻表 JSON〉（<a href="https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list" target="_blank" rel="noopener">ods.railway.gov.tw</a>）；桃園機場捷運與高雄捷運為交通部 <a href="https://tdx.transportdata.tw/" target="_blank" rel="noopener">TDX 運輸資料流通服務</a>的各站時刻表，本系統據以重建逐班列車。列車與航班皆依表定時刻推算，不含誤點、取消等即時資訊；轉乘的步行與等車時間、往松山機場的台北捷運與往臺中機場的公車均為估計值，未納入國定假日班表。「提早 2 小時到機場」是一般建議，旺季或需托運、退稅時請再提早。本系統為非官方展示，實際行車與航班以各公司公告為準。
+        資料來源：航班為<a href="air.html">航班世界地圖</a>所用的長榮、華航、星宇 2026/27 冬季班表（各航空公司官網時刻表與機場公告）；台灣高鐵〈2026/2/2 起適用時刻表〉、〈2026 選舉疏運時刻表〉（<a href="https://www.thsrc.com.tw/ArticleContent/a3b630bb-1066-4352-a1ef-58c7b4e8ef7c" target="_blank" rel="noopener">thsrc.com.tw</a>）與〈11/27 紅眼班次〉公告（<a href="https://www.thsrc.com.tw/ArticleContent/25425adb-288e-4a11-95ea-71e45184c4be" target="_blank" rel="noopener">thsrc.com.tw</a>）；臺鐵公司開放資料〈鐵路時刻表 JSON〉（<a href="https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list" target="_blank" rel="noopener">ods.railway.gov.tw</a>）；桃園機場捷運與高雄捷運為交通部 <a href="https://tdx.transportdata.tw/" target="_blank" rel="noopener">TDX 運輸資料流通服務</a>的各站時刻表，本系統據以重建逐班列車。列車與航班皆依表定時刻推算，不含誤點、取消等即時資訊；轉乘的步行與等車時間、往松山機場的台北捷運與往臺中機場的公車均為估計值，未納入國定假日班表。「提早 2 小時到機場」是一般建議，旺季或需托運、退稅時請再提早。本系統為非官方展示，實際行車與航班以各公司公告為準。
       </p>
     </aside>
   </main>
@@ -958,7 +961,7 @@ function buildH(r,tt){
     else if (j===stops.length-1){ s.arr=s.tA; s.dep=s.tA+H_POST; }
     else { s.arr=s.tD-H_DWELL; s.dep=s.tD; } });
   const o=stops[0], z=stops[stops.length-1];
-  return {sys:'H', key:`H${tt.id}-${r.no}`, g:'hsr', local:false, no:r.no, dir:r.dir, tt, days:r.days||null, dates:r.dates||null,
+  return {sys:'H', key:`H${tt.id}-${r.no}`, g:'hsr', local:false, no:r.no, dir:r.dir, tt, days:r.days||null, dates:r.dates||null, tag:r.tag||null, note:r.note||null,
     daily:tt.regular ? r.days.every(Boolean) : !r.dates, stops, route, stopAt:new Map(stops.map(s=>[s.st,s])),
     from:o.st, to:z.st, start:o.arr, end:z.dep, first:o.tD, last:z.tA, nStops:stops.length};
 }
@@ -1131,6 +1134,10 @@ const state={mode:'live', di:0, min:480, speed:60, playing:true, sel:null, place
   flyAp:0, flyQ:'', flySel:null, flyLead:120, flyTerm:null, flyFrom:placeIdByName('臺中'),
   show:new Set(GROUPS.map(g=>g[0])), dayFirst:300};
 const tpFmt=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+// the slider runs to 02:20 the next morning, so a date's late trains can be followed on that date
+// (高鐵 11/27 紅眼班次 arrive 01:59); past midnight the clock stands in the next date's small hours
+const MAXMIN=1580;
+const clk = () => state.min>=1440 ? {di:state.di+1, t:state.min-1440} : {di:state.di, t:state.min};
 function taipeiNow(){
   const now=new Date(), p={}; for (const x of tpFmt.formatToParts(now)) p[x.type]=x.value;
   const h=+p.hour%24; return {y:+p.year, mo:+p.month, d:+p.day, sec:h*3600+(+p.minute)*60+(+p.second)+now.getMilliseconds()/1000};
@@ -1312,10 +1319,10 @@ function makeTrainEl(tr){
 }
 // trains of the date, plus last night's trains still running after midnight
 function computeActive(){
-  const t=state.min, list=[];
+  const {di,t}=clk(), list=[];
   const add=(tr,tt)=>{ if (tt<tr.start||tt>tr.end) return; const st=trainState(tr,tt); if (st) list.push({tr,t:tt,st,pos:trainPos(tr,st)}); };
-  for (const tr of dayTrains(state.di)) add(tr,t);
-  for (const tr of dayTrains(state.di-1)) add(tr,t+1440);
+  for (const tr of dayTrains(di)) add(tr,t);
+  for (const tr of dayTrains(di-1)) add(tr,t+1440);
   return list;
 }
 function drawTrains(){
@@ -1382,9 +1389,9 @@ function drawClock(){
   secs=((secs%86400)+86400)%86400;
   const txt=[Math.floor(secs/3600),Math.floor(secs/60)%60,Math.floor(secs)%60].map(v=>String(v).padStart(2,'0')).join(':');
   if ($('clock').textContent!==txt) $('clock').textContent=txt;
-  const when=`${dateLabel(state.di)} · 高鐵 ${hsrTTLabel(state.di)} · 臺鐵 ${proxy(state.di)!==state.di?`套用 ${md(proxy(state.di))} 班表`:'當日班表'}`;
+  const when=`${dateLabel(state.di)}${state.min>=1440?` → ${md(state.di+1)} 凌晨`:''} · 高鐵 ${hsrTTLabel(state.di)} · 臺鐵 ${proxy(state.di)!==state.di?`套用 ${md(proxy(state.di))} 班表`:'當日班表'}`;
   if ($('whenText').textContent!==when) $('whenText').textContent=when;
-  const sl=$('slider'); if (document.activeElement!==sl || state.mode==='live') sl.value=Math.max(240,Math.min(1439,state.min));
+  const sl=$('slider'); if (document.activeElement!==sl || state.mode==='live') sl.value=Math.max(240,Math.min(MAXMIN,state.min));
   const o=fmt(state.min); if ($('sliderOut').textContent!==o) $('sliderOut').textContent=o;
 }
 
@@ -1415,6 +1422,7 @@ const chX=m=>CH.x0+(m-CH.m0)/(CH.m1-CH.m0)*(CH.x1-CH.x0);
 let chTop=1;
 function renderDayChart(){
   const i=state.di, list=shown(i), prev=shown(i-1), curve=[];
+  CH.m1=Math.min(MAXMIN,Math.max(1470,Math.ceil(Math.max(0,...hsrDay(i).list.map(t=>t.last))/10)*10+10));
   // trains on the line every 5 minutes, per group: [minute, {group: count}, total]
   for (let m=CH.m0;m<=CH.m1;m+=5){ const c={}; for (const [g] of GROUPS) c[g]=0;
     for (const tr of list) if (m>=tr.first&&m<=tr.last) c[tr.g]++;
@@ -1471,7 +1479,9 @@ function renderSummary(){
     const counts=WK.map((w,d)=>H_REG.byWd[d].length), mx=Math.max(...counts), mn=Math.min(...counts);
     notes.push(`<span class="hh">高鐵</span>依星期套用〈${esc(H_REG.name)}〉：每日固定 <b>${H_REG.dailyN}</b> 班，其餘車次只在指定星期行駛，週${WK.filter((_,d)=>counts[d]===mx).join('、')}最多（${mx} 班）、週${WK.filter((_,d)=>counts[d]===mn).join('、')}最少（${mn} 班）。`);
   } else {
-    const wd=wkOf(i); notes.push(`<span class="hh">高鐵</span> ${mdIso(h.tt.from)}–${mdIso(h.tt.to)} 改用〈${esc(h.tt.name)}時刻表〉，本日 <b>${h.list.length}</b> 班（平常週${WK[wd]} ${H_REG.byWd[wd].length} 班）。`);
+    const wd=wkOf(i), tg=h.list.filter(t=>t.tag);
+    notes.push(`<span class="hh">高鐵</span> ${mdIso(h.tt.from)}–${mdIso(h.tt.to)} 改用〈${esc(h.tt.name)}時刻表〉，本日 <b>${h.list.length}</b> 班（平常週${WK[wd]} ${H_REG.byWd[wd].length} 班）。`
+      +(tg.length?`其中 <b>${tg.length}</b> 班為深夜${tg[0].tag}班次（南下 ${tg.filter(t=>t.dir==='S').length}、北上 ${tg.filter(t=>t.dir==='N').length}），最晚 ${fmt(Math.max(...tg.map(t=>t.last)))} 抵達；時間軸可拉到翌日 ${fmt(MAXMIN)}。`:''));
   }
   const spIn=H_SP.filter(s=>s.dates.some(x=>days.some(d=>ISO(d)===x)) && s!==h.tt);
   if (spIn.length) notes.push(`本週 ${spIn.map(s=>`${mdIso(s.from)}–${mdIso(s.to)}`).join('、')} 高鐵改用疏運班表（圖中「疏運」）。`);
@@ -1519,7 +1529,7 @@ function renderRunning(){
   const key=state.di+'|'+state.sel+'|'+list.map(a=>a.tr.key).join(',');
   if (key!==runKey){
     runKey=key; runRows=new Map();
-    const row=({tr})=>`<li><button class="runrow k-${tr.g}${state.sel===tr.key?' sel':''}" data-pick="${tr.key}"><span class="tno k-${tr.g}">${tr.no}</span><span class="rm"><b>${stName(tr,tr.from)} → ${toName(tr)}</b><small><span data-ss></span> · ${subTxt(tr)}</small></span><span class="rn"><small data-nl></small><b data-nt></b></span><span class="pg"><i></i></span></button></li>`;
+    const row=({tr})=>`<li><button class="runrow k-${tr.g}${state.sel===tr.key?' sel':''}" data-pick="${tr.key}"><span class="tno k-${tr.g}">${tr.no}</span><span class="rm"><b>${stName(tr,tr.from)} → ${toName(tr)}${tr.tag?`<span class="tg">${tr.tag}</span>`:''}</b><small><span data-ss></span> · ${subTxt(tr)}</small></span><span class="rn"><small data-nl></small><b data-nt></b></span><span class="pg"><i></i></span></button></li>`;
     const hs=list.filter(a=>a.tr.sys==='H'), ts=list.filter(a=>a.tr.sys==='T'), ms=list.filter(a=>a.tr.sys==='M'), n=d=>list.filter(a=>a.tr.dir===d).length;
     if (!list.length) pane.innerHTML=`<div class="empty">此刻沒有${state.show.size?'所選列車':'列車'}運行（${md(state.di)} ${fmt(state.min)}）。<button class="btn" data-jump="480">看 08:00</button></div>`;
     else pane.innerHTML=(hs.length?`<div class="runhead"><span>台灣高鐵 ${hs.length} 列</span><span>南下 ${n('S')} · 北上 ${n('N')}</span></div><ul class="runlist">${hs.map(row).join('')}</ul>`:'')
@@ -1541,14 +1551,14 @@ const xferHtml = node => (CONN.get(node)||[]).filter(c=>PLACE_OF.get(c.to)!==PLA
   .map(c=>`<button data-place="${PLACE_OF.get(c.to)}">${c.to[0]==='X'?'前往':'轉乘'} ${nodeName(c.to)}<small>約 ${c.min} 分 · ${c.how}</small></button>`).join('');
 function dirHint(i){ const L=ST[i].lines; return L.has(6)||L.has(7)||L.has(8) ? {cw:'南下',ccw:'北上'} : L.has(5) ? {cw:'西行',ccw:'東行'} : {cw:'北上',ccw:'南下'}; }
 function boardHtml(node){
-  const sys=node[0], i=+node.slice(1), t=state.min;
+  const sys=node[0], i=+node.slice(1), {di,t}=clk();
   if (sys==='X') return flightBoard(i);
-  const cands=[...shown(state.di).filter(tr=>tr.sys===sys).map(tr=>[tr,t]), ...shown(state.di-1).filter(tr=>tr.sys===sys).map(tr=>[tr,t+1440])];
+  const cands=[...shown(di).filter(tr=>tr.sys===sys).map(tr=>[tr,t]), ...shown(di-1).filter(tr=>tr.sys===sys).map(tr=>[tr,t+1440])];
   const deps=dir=>cands.filter(([tr,tt])=>{ const s=tr.stopAt.get(i); return tr.dir===dir && s && s.j<tr.stops.length-1 && s.tD>=tt-0.5; })
       .sort((a,b)=>(a[0].stopAt.get(i).tD-a[1])-(b[0].stopAt.get(i).tD-b[1])).slice(0,5);
   const row=([tr,tt])=>{ const s=tr.stopAt.get(i), dt=s.tD-tt; let note, hot=false;
     if (tt>=s.arr && tt<=s.dep){ note=tr.from===i?'待發':'停靠中'; hot=true; } else if (dt<=5){ note=`${Math.max(1,Math.ceil(dt))} 分後`; hot=true; } else if (dt<60) note=`${Math.ceil(dt)} 分後`; else note='依時刻';
-    return `<div class="brow" data-pick="${tr.key}"><span class="bt">${fmt(s.tD)}</span><span class="bn">${tr.no}</span><span class="bd">往 ${toName(tr)}<small>${sys==='H'?typeLabel(tr):sys==='M'?`${tr.kind.name} · 停靠 ${tr.nStops} 站`:`${tr.kind.name} · ${viaTxt(tr)}`}</small></span><span class="bs${hot?' hot':''}">${note}</span></div>`; };
+    return `<div class="brow" data-pick="${tr.key}"><span class="bt">${fmt(s.tD)}</span><span class="bn">${tr.no}</span><span class="bd">往 ${toName(tr)}<small>${sys==='H'?(tr.tag?tr.tag+'班次 · ':'')+typeLabel(tr):sys==='M'?`${tr.kind.name} · 停靠 ${tr.nStops} 站`:`${tr.kind.name} · ${viaTxt(tr)}`}</small></span><span class="bs${hot?' hot':''}">${note}</span></div>`; };
   const dirs = sys==='H' ? [['S','南下 往左營'],['N','北上 往南港']].filter(([d])=>!(d==='S'&&i===11)&&!(d==='N'&&i===0))
     : sys==='M' ? (L=>[['f','往 '+L.ends.f],['b','往 '+L.ends.b]].filter(([d])=>MS[i].k!==(d==='f'?L.stations.length-1:0)))(ML[MS[i].line])
     : (h=>[['cw',`順行 · ${h.cw}`],['ccw',`逆行 · ${h.ccw}`]])(dirHint(i));
@@ -1563,7 +1573,7 @@ function boardHtml(node){
 // an airport's board lists its next departures; a row opens the flight in 搭機接駁
 function flightBoard(x){
   const a=AP[XN[x].ap], t=state.min, k=XN[x].ap;
-  const list=[...flightsOn(state.di).filter(f=>f.ap===k&&f.depM>=t-0.5).map(f=>[f,f.depM-t]), ...flightsOn(state.di+1).filter(f=>f.ap===k).map(f=>[f,f.depM+1440-t])]
+  const list=[...flightsOn(state.di).filter(f=>f.ap===k&&f.depM>=t-0.5).map(f=>[f,f.depM-t]), ...flightsOn(state.di+1).filter(f=>f.ap===k&&f.depM+1440>=t-0.5).map(f=>[f,f.depM+1440-t])]
     .filter(([f])=>a.code!=='TPE'||termOf(f)===x).slice(0,8);
   const row=([f,dt])=>`<div class="brow fl" data-fly="${f.key}" data-fdi="${dt>=1440-t?state.di+1:state.di}"><span class="bt">${f.dep}</span><span class="bn">${f.no}</span><span class="bd">往 ${esc(f.city)}<small>${f.d} · ${airlineName(f)}</small></span><span class="bs${dt<=120?' hot':''}">${dt<60?Math.max(1,Math.ceil(dt))+' 分後':dt<1440-t?'':'明日'}</span></div>`;
   return `<div class="board x"><div class="board-head"><div><span class="sysn">出發航班</span><b>${esc(XN[x].name)}</b><span class="en">${a.code}</span></div><time>${fmt(t)}</time></div>
@@ -1849,7 +1859,7 @@ function renderTimetable(){
     const passSet=tr=>new Set(tr.route.filter(r=>r.pass).map(r=>r.st));
     t.className='tt mx';
     t.innerHTML=`<thead><tr><th>車次</th><th>行駛日</th>${order.map(i=>`<th>${HS[i].zh}</th>`).join('')}</tr></thead><tbody>`+
-      rows.map(tr=>{ const ps=passSet(tr); return `<tr data-row="${tr.key}" data-pick="${tr.key}"><td>${tr.no}</td><td>${hDays(tr,true)}</td>${order.map(i=>{ const s=tr.stopAt.get(i); return `<td>${s?fmt(s.tD):ps.has(i)?'<span class="ps" title="不停靠">↓</span>':''}</td>`; }).join('')}</tr>`; }).join('')+'</tbody>';
+      rows.map(tr=>{ const ps=passSet(tr); return `<tr data-row="${tr.key}" data-pick="${tr.key}"><td>${tr.no}${tr.tag?`<span class="tg">${tr.tag}</span>`:''}</td><td>${hDays(tr,true)}</td>${order.map(i=>{ const s=tr.stopAt.get(i); return `<td>${s?fmt(s.tD):ps.has(i)?'<span class="ps" title="不停靠">↓</span>':''}</td>`; }).join('')}</tr>`; }).join('')+'</tbody>';
     $('ttCount').textContent=`高鐵${h.tt.regular?'〈'+h.tt.name+'〉':'〈'+h.tt.name+'時刻表〉'} ${DIRNAME[dir]} ${rows.length} 班${state.ttOnly?`（${md(state.di)} 行駛）`:'（全部車次，淡色為本日不行駛）'} · 「↓」為不停靠`;
   } else if (state.ttSys==='M'){
     const L=ML[state.ttLineM], rows=shown(state.di).filter(tr=>tr.line===L&&tr.dir===state.ttDirM).sort((a,b)=>a.first-b.first);
@@ -1923,8 +1933,11 @@ function calendar(tr,cur){
 }
 // which time the selected train is judged at: today's run, or last night's run past midnight
 function selContext(tr){
-  if (runsOn(tr,state.di)) return {runs:true,t:state.min};
-  if (runsOn(tr,state.di-1) && state.min+1440<=tr.end) return {runs:true,t:state.min+1440};
+  // past midnight on the slider the date's own run comes first, then the next date's
+  if (state.min>=1440 && runsOn(tr,state.di)) return {runs:true,t:state.min};
+  const {di,t}=clk();
+  if (runsOn(tr,di)) return {runs:true,t};
+  if (runsOn(tr,di-1) && t+1440<=tr.end) return {runs:true,t:t+1440};
   return {runs:false,t:state.min};
 }
 const XFER_H=new Set(LINKS.map(l=>l[0])), XFER_T=new Set(LINKS.map(l=>BYNAME.get(l[1])));
@@ -1974,7 +1987,7 @@ function renderDetail(){
       items.push(`<li class="${w==='here'?'now':w}"><span class="t">${last?fmt(s.tA):fmt(s.tD)}</span><span class="pin"><i></i></span><span class="nm">${ST[s.st].zh}${ar}${chips}</span><span class="stt">${sttOf(w,last)}</span></li>`);
     });
   }
-  const meta = H_ ? `高鐵 N700ST · ${DIRNAME[tr.dir]} · ${typeLabel(tr)} · ${fmt(tr.first)}–${fmt(tr.last)} · 行車 ${durTxt(tr.last-tr.first)}${tr.tt.regular?'':' · '+tr.tt.name}`
+  const meta = H_ ? `高鐵 N700ST · ${DIRNAME[tr.dir]} · ${typeLabel(tr)} · ${fmt(tr.first)}–${fmt(tr.last)} · 行車 ${durTxt(tr.last-tr.first)}${tr.tt.regular?'':' · '+tr.tt.name}${tr.tag?' · '+tr.tag+'班次':''}`
     : isM ? `${tr.kind.label} · ${dirTxt(tr)} · 停靠 ${tr.nStops} 站 · ${fmt(tr.first)}–${fmt(tr.last)} · 行車 ${durTxt(tr.last-tr.first)}`
     : `${tr.kind.label} · ${DIRNAME[tr.dir]} · ${viaTxt(tr)} · 停靠 ${tr.nStops} 站 · ${fmt(tr.first)}–${fmt(tr.last)} · 行車 ${durTxt(tr.last-tr.first)} · 約 ${Math.round(tr.km)} km`;
   const days = H_ ? `<div class="dayrow"><span>行駛日</span>${hDays(tr,false)}<span>${runDaysH(tr)}</span></div>`
@@ -1987,6 +2000,7 @@ function renderDetail(){
     <div class="detail-actions">${pos?'<button class="btn" id="dLocate">定位</button>':''}<button class="btn icon" id="dClose" aria-label="關閉">✕</button></div></div>
     ${H_?ART_H:artT(tr)}
     <div class="status">${status}</div>
+    ${H_&&tr.note?`<p class="trnote">${tr.note}</p>`:''}
     ${days}
     <ol class="stops">${items.join('')}</ol>
     <p class="fleet">${fleet}</p>`;
@@ -2006,7 +2020,7 @@ function renderPanels(){
   for (const [g] of GROUPS) $('lg-'+g).textContent=ALL.reduce((n,a)=>n+(a.tr.g===g),0);
   const nH=ALL.filter(a=>a.tr.sys==='H').length, nM=ALL.filter(a=>a.tr.sys==='M').length;
   $('hRun').textContent=nH; $('tRun').textContent=ALL.length-nH-nM; $('mRun').textContent=nM; $('tabRunN').textContent=ACTIVE.length;
-  $('aNext').textContent=flightsOn(state.di).filter(f=>f.depM>=state.min&&f.depM<state.min+180).length+flightsOn(state.di+1).filter(f=>f.depM+1440<state.min+180).length;
+  $('aNext').textContent=flightsOn(state.di).filter(f=>f.depM>=state.min&&f.depM<state.min+180).length+flightsOn(state.di+1).filter(f=>f.depM+1440>=state.min&&f.depM+1440<state.min+180).length;
   const off=!ACTIVE.length; $('offhours').hidden=!off;
   if (off){ const list=shown(state.di), first=list.length?Math.min(...list.map(t=>t.first)):0, last=list.length?Math.max(...list.map(t=>t.last)):0;
     $('offTitle').textContent=state.show.size===GROUPS.length?'目前沒有列車運行':'目前沒有所選列車運行';
@@ -2029,7 +2043,8 @@ function frame(now){
   if (state.mode==='live') syncLive();
   else if (state.playing){
     state.min+=dt*state.speed/60;
-    if (state.min>=1440){ state.min-=1440; state.di++; onDayChange(); }
+    // past midnight the date stays on until its last trains are in (02:20 at the latest), then the next date begins
+    if (state.min>=MAXMIN || (state.min>=1500 && !ACTIVE.length)){ state.min-=1440; state.di++; onDayChange(); }
     // skip the small hours once last night's trains are in
     if (state.min>60 && state.min<state.dayFirst && !ACTIVE.length) state.min=state.dayFirst;
   }
