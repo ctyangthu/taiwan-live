@@ -25,5 +25,6 @@ print("air-live copied")
 
 for old in list((ROOT / "data").glob("thsr-*.json")): old.unlink()
 for p in sorted((RAIL / "data").glob("*.json")):
+    if p.name == "metro.json": continue    # this project keeps its own 機捷 + 高捷 data in an older format (tools/build_metro.py)
     shutil.copy(p, ROOT / "data" / p.name)
 print("rail-live copied")
