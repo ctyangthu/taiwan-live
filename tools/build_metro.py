@@ -14,6 +14,7 @@ RAW = ROOT / "raw" / "metro"
 load = lambda n: json.loads((RAW / n).read_text(encoding="utf-8"))
 WEEK = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 TOL = 2          # minutes a departure may differ from the expected running time
+BRIDGE_OF = {"TYMC": 7}   # stations a run may pass without a departure (as in metro-live)
 # [operator, line, name, station order]
 A_ORDER = [f"A{n}" for n in range(1, 14)] + ["A14a"] + [f"A{n}" for n in range(15, 23)]
 R_ORDER = ["R3", "R4", "R4A"] + [f"R{n}" for n in range(5, 23)] + ["R22A", "R23", "R24", "RK1"]
@@ -85,16 +86,23 @@ def main():
                 e = max(range(max(1, about - 2), about + 3), key=lambda g: (sum(r[-1][1] + g in have for r in open_), -g))
                 # first the trains that keep that time to the minute, then the ones held a little longer
                 # (機捷 commuter trains wait at A8 for the express to pass); order is kept in both passes
-                taken, nxt = set(), []
+                # a run that found no departure at the last stations stays open for up to BRIDGE_OF stations
+                # (機場捷運's 尖峰跳站普通車 run non-stop from A18 to A13); it passes them without stopping
+                at_k = {s_: n for n, s_ in enumerate(seq)}
+                aim = {id(r): r[-1][1] + (e if r[-1][0] == seq[k - 1] else round(expect(r[-1][0], sid))) for r in open_}
+                taken, nxt, matched = set(), [], set()
                 for lo, hi in ((-1, 1), (-TOL, 8)):
                     i = 0
-                    for r in open_:
-                        if r[-1][0] == sid: continue
-                        target = r[-1][1] + e
+                    for r in sorted(open_, key=lambda r: aim[id(r)]):
+                        if id(r) in matched: continue
+                        target = aim[id(r)]
                         while i < len(times) and (times[i] < target + lo or i in taken): i += 1
                         if i < len(times) and times[i] <= target + hi:
-                            r.append((sid, times[i])); taken.add(i); nxt.append(r); i += 1
-                stats["ends early"] += sum(r[-1][0] != sid for r in open_)
+                            r.append((sid, times[i])); taken.add(i); matched.add(id(r)); nxt.append(r); i += 1
+                for r in open_:
+                    if id(r) in matched: continue
+                    if k - at_k[r[-1][0]] < BRIDGE_OF.get(op, 0) + 1 and k < len(seq) - 1: nxt.append(r)
+                    else: stats["ends early"] += 1
                 for i, t in enumerate(times):
                     if i not in taken: nxt.append([(sid, t)]); runs.append(nxt[-1])
                 open_ = sorted(nxt, key=lambda r: r[-1][1])

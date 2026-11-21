@@ -95,5 +95,5 @@ python3 tools/build_metro.py
 
 - 航班：[air-live](https://github.com/ctyangthu/air-live)（長榮、華航、星宇官網時刻表與機場公告）。
 - 高鐵、臺鐵：[rail-live](https://github.com/ctyangthu/rail-live)（台灣高鐵時刻表、臺鐵公司開放資料）。
-- 捷運：交通部 TDX 運輸資料流通服務（桃園大眾捷運公司、高雄捷運公司）。
+- 捷運：交通部 TDX 運輸資料流通服務（桃園大眾捷運公司、高雄捷運公司）。2026/11/21 與[桃園捷運](https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable.php)、[高雄捷運](https://www.krtc.com.tw/Guide/timetable)官網各站時刻表逐站核對（方法與工具見 [metro-live](https://github.com/ctyangthu/metro-live)），重建出的班次與官方完全相同；機場捷運尖峰跳站普通車（A18 直達 A13）照實不停中間各站。
 - 地圖：[taiwan-atlas](https://github.com/dkaoster/taiwan-atlas)（原始資料為內政部國土測繪中心開放資料）、[world-atlas](https://github.com/topojson/world-atlas)（Natural Earth）。
